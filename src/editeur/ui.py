@@ -30,6 +30,9 @@ def draw_editor(editor):
             if editor.maze[y][x] == 1:
                 pygame.draw.rect(editor.screen, COLORS["wall"], rect)
                 pygame.draw.rect(editor.screen, COLORS["wall_border"], rect, 1)
+            elif editor.maze[y][x] == 2:
+                pygame.draw.rect(editor.screen, COLORS["tree"], rect, border_radius=8)
+                pygame.draw.rect(editor.screen, COLORS["tree_top"], rect.inflate(-12, -12), border_radius=4)
             else:
                 pygame.draw.rect(editor.screen, COLORS["path"], rect)
                 pygame.draw.rect(editor.screen, (40, 40, 60), rect, 1)
@@ -89,6 +92,9 @@ def _draw_tool_preview(editor, tool, rect):
         pygame.draw.rect(editor.screen, COLORS["player"], preview_rect)
     elif tool == "EXIT":
         pygame.draw.rect(editor.screen, COLORS["exit"], preview_rect)
+    elif tool == "TREE":
+        pygame.draw.rect(editor.screen, COLORS["tree"], preview_rect, border_radius=5)
+        pygame.draw.rect(editor.screen, COLORS["tree_top"], preview_rect.inflate(-10, -10), border_radius=3)
     elif tool == "1 Horizon":
         pygame.draw.circle(editor.screen, (255, 165, 0), preview_rect.center, 12)
     elif tool == "2 Verti":

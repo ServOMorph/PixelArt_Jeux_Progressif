@@ -11,8 +11,9 @@ Un jeu de labyrinthe progressif en Pixel Art développé en Python avec Pygame.
 - **Éditeur de Niveaux Complet** : Créez vos propres labyrinthes avec ennemis et points d'intérêt.
 - **Support de la Souris** : Naviguez dans les menus et dessinez vos niveaux à la souris.
 - **Système de Stats** : Suivi de votre progression, nombre de morts et meilleurs niveaux.
-- **Ennemis Dynamiques** : Mobs avec patterns de mouvement horizontaux et verticaux.
-- **Mode Développeur** : Option de login automatique pour les tests rapides.
+- **Ennemis Dynamiques** : Mobs patrouilleurs, traqueurs (chaser) et tireurs de missiles (shooter).
+- **Tuiles Destructibles** : Système d'arbres pouvant être détruits par les missiles (HP).
+- **Grille de Sélection** : Naviguez parmi des dizaines de niveaux via une interface claire.
 
 ## 🛠️ Installation
 
@@ -36,24 +37,19 @@ python run.py
 - **Z / Q / S / D** : Déplacement du personnage.
 - **SOURIS** : Clic sur les boutons de menu et options.
 - **ECHAP** : Retour au menu principal.
-- **ESPACE** : Passer au niveau suivant (après une victoire).
 
 ## 🏗️ Éditeur de Niveaux
 
-Vous pouvez lancer l'éditeur depuis le menu principal du jeu ou via le script dédié :
-```bash
-python run_editeur.py
-```
-
-### Fonctionnalités de l'Éditeur
-- **Peinture à la souris** : Maintenez le clic gauche pour dessiner des murs.
-- **Outils (Touches 1-6)** :
-  1. `WALL` : Murs infranchissables.
-  2. `PATH` : Chemin libre.
-  3. `START` : Point de départ du joueur.
-  4. `EXIT` : Point d'arrivée (victoire).
-  5. `MOB_H` : Ennemi à mouvement horizontal.
-  6. `MOB_V` : Ennemi à mouvement vertical.
+### Raccourcis de l'Éditeur (1-9)
+1. `WALL` : Mur classique.
+2. `PATH` : Vide / Chemin.
+3. `START` : Point de départ.
+4. `EXIT` : Arrivée.
+5. `TREE` : Arbre destructible (3 HP).
+6. `MOB_H` : Patrouille Horizontale.
+7. `MOB_V` : Patrouille Verticale.
+8. `TRACKER` : Mob qui suit le joueur.
+9. `MISSILE` : Mob qui tire sur le joueur.
 - **ID de Niveau** : Cliquez sur la boîte ID en haut pour changer le numéro du niveau (les niveaux personnalisés commencent à 100).
 - **SAVE** : Enregistre le niveau dans `levels/custom_levels.json`.
 - **CLEAR** : Réinitialise la grille.

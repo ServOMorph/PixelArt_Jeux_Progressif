@@ -32,7 +32,7 @@ class LevelEditor:
         self.mobs = []
         
         # Outils séparés pour une meilleure lisibilité
-        self.tile_tools = ["WALL", "PATH", "START", "EXIT"]
+        self.tile_tools = ["WALL", "PATH", "START", "EXIT", "TREE"]
         self.mob_tools = ["1 Horizon", "2 Verti", "3 Trackeur", "4 Missile"]
         self.current_tool = "WALL"
         

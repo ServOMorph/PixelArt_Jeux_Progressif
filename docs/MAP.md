@@ -11,11 +11,18 @@ Ce document sert d'index technique pour une navigation rapide par l'IA.
 ## 📂 src/ (Cœur de Logique)
 - **`constants.py`** : Énumérations des états du jeu (`GameState`).
 - **`data_manager.py`** : Service de persistance (Stats & Niveaux Custom).
-- **`entities.py`** : Modèles du Joueur et des Ennemis (IA de base, mouvement).
+- **`entities.py`** : Modèles du Joueur.
+- **`tiles.py`** : Système de tuiles extensible (Propriétés, HP).
 - **`input_handler.py`** : Pont entre les événements Pygame et la logique métier.
-- **`level.py`** : Gestionnaire de chargement et de validation des labyrinthes.
-- **`ui.py`** : Moteur de rendu graphique (Basé sur Pygame surfaces).
-- **`editor.py`** : Interface de création interactive de niveaux.
+- **`level.py`** : Gestionnaire de chargement (Dynamique) et de validation des labyrinthes.
+- **`ui.py`** : Moteur de rendu graphique (Gestion des arbres, grille de sélection).
+
+## 📂 mobs/ (IA Modulaire)
+- **`base.py`** : Classe abstraite pour tous les ennemis.
+- **`patrol.py`** : Logique de patrouille (H/V).
+- **`chaser.py`** : Logique de traque du joueur.
+- **`shooter.py`** : Logique de tir et gestion des projectiles.
+- **`factory.py`** : Créateur dynamique de mobs selon la config.
 
 ## 📂 levels/ (Données)
 - **`levels_config.py`** : Définition des niveaux d'aventure par défaut.

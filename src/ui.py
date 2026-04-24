@@ -219,15 +219,28 @@ class GameRenderer:
         wall_color = self.level.colors.get("wall", COLORS["wall"])
         border_color = self.level.colors.get("wall_border", COLORS["wall_border"])
         path_color = self.level.colors.get("path", COLORS["path"])
+        tree_color = self.level.colors.get("tree", COLORS["tree"])
 
-        if tile == 1:
+        if tile == 1: # WALL
             pygame.draw.rect(self.screen, wall_color, rect)
             if self.level.id == 2:
                 # Style forêt : ajout d'un petit "feuillage" interne
                 pygame.draw.rect(self.screen, border_color, rect.inflate(-12, -12))
             else:
                 pygame.draw.rect(self.screen, border_color, rect, 2)
-        else:
+        elif tile == 2: # TREE
+            # Changement de couleur selon les HP
+            hp = self.level.tile_states.get((x, y), 3)
+            # Plus de HP = plus clair, Moins de HP = plus foncé/brun
+            factor = hp / 3.0
+            current_tree_color = (
+                int(tree_color[0] * factor + 50 * (1-factor)),
+                int(tree_color[1] * factor + 30 * (1-factor)),
+                int(tree_color[2] * factor)
+            )
+            pygame.draw.rect(self.screen, current_tree_color, rect, border_radius=10)
+            pygame.draw.rect(self.screen, COLORS["tree_top"], rect.inflate(-16, -16), border_radius=5)
+        else: # PATH
             pygame.draw.rect(self.screen, path_color, rect)
 
     def draw_exit(self):

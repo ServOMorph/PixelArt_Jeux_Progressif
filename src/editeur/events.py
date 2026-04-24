@@ -60,8 +60,8 @@ def handle_editor_events(editor):
             
             # Raccourcis outils
             shortcuts = {pygame.K_1: "WALL", pygame.K_2: "PATH", pygame.K_3: "START", 
-                         pygame.K_4: "EXIT", pygame.K_5: "1 Horizon", pygame.K_6: "2 Verti", 
-                         pygame.K_7: "3 Trackeur", pygame.K_8: "4 Missile"}
+                         pygame.K_4: "EXIT", pygame.K_5: "TREE", pygame.K_6: "1 Horizon", 
+                         pygame.K_7: "2 Verti", pygame.K_8: "3 Trackeur", pygame.K_9: "4 Missile"}
             if event.key in shortcuts:
                 editor.current_tool = shortcuts[event.key]
 
@@ -192,7 +192,9 @@ def apply_tool_logic(editor, x, y, erase=False):
     elif editor.current_tool == "EXIT":
         editor.maze[y][x] = 0
         editor.exit_pos = [x, y]
-    elif editor.current_tool in ["1 Horizon", "2 Verti", "3 Trackeur"]:
+    elif editor.current_tool == "TREE":
+        editor.maze[y][x] = 2
+    elif editor.current_tool in ["1 Horizon", "2 Verti", "3 Trackeur", "4 Missile"]:
         editor.maze[y][x] = 0
         if editor.current_tool == "1 Horizon": pattern = "horizontal"
         elif editor.current_tool == "2 Verti": pattern = "vertical"
@@ -201,5 +203,6 @@ def apply_tool_logic(editor, x, y, erase=False):
         editor.mobs = [m for m in editor.mobs if m["start_pos"] != [x, y]]
         editor.mobs.append({
             "type": "Mob1", "start_pos": [x, y], "pattern": pattern, 
-            "distance": 4, "speed": 0.08 if pattern != "chaser" else 0.04
+            "distance": 4 if pattern != "shooter" else 120, 
+            "speed": 0.08 if pattern not in ["chaser", "shooter"] else 0.04
         })

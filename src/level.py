@@ -5,25 +5,51 @@ from config import TILE_SIZE
 from levels.levels_config import ALL_LEVELS
 
 
+from src.tiles import TileType, TILE_PROPERTIES
+
 class Level:
     """Gere un niveau du jeu (labyrinthe)."""
 
     def __init__(self, data):
         self.id = data.get("id")
         self.name = data.get("name", f"Niveau {self.id}")
-        self.maze = data.get("maze")
+        self.maze = [list(row) for row in data.get("maze")] # Copie profonde pour modif
         self.width = len(self.maze[0])
         self.height = len(self.maze)
         self.start_x, self.start_y = data.get("start_pos", [1, 1])
         self.exit_x, self.exit_y = data.get("exit_pos", [self.width - 1, self.height - 1])
         self.mobs_data = data.get("mobs", [])
         self.colors = data.get("colors", {})
+        
+        # État des tuiles destructibles (HP)
+        self.tile_states = {} # (x,y) -> hp
+        self._init_tile_states()
+
+    def _init_tile_states(self):
+        """Initialise les HP des tuiles destructibles."""
+        for y in range(self.height):
+            for x in range(self.width):
+                t_type = self.maze[y][x]
+                props = TILE_PROPERTIES.get(t_type)
+                if props and props.get("destructible"):
+                    self.tile_states[(x, y)] = props.get("hp", 1)
+
+    def hit_tile(self, x, y):
+        """Applique des dégâts à une tuile. Retourne True si détruite."""
+        if (x, y) in self.tile_states:
+            self.tile_states[(x, y)] -= 1
+            if self.tile_states[(x, y)] <= 0:
+                self.maze[y][x] = TileType.PATH
+                del self.tile_states[(x, y)]
+                return True
+        return False
 
     def is_walkable(self, x, y):
         """Verifie si une tuile est accessible."""
         if not (0 <= x < self.width and 0 <= y < self.height):
             return False
-        return self.maze[y][x] == 0
+        t_type = self.maze[y][x]
+        return TILE_PROPERTIES.get(t_type, {}).get("walkable", False)
 
     def get_dimensions(self):
         """Retourne les dimensions du labyrinthe."""

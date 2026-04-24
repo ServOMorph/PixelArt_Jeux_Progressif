@@ -27,8 +27,11 @@ class Projectile:
         self.x += self.vx
         self.y += self.vy
         
-        # Collision murs
-        if not self.maze.is_walkable(int(self.x + 0.5), int(self.y + 0.5)):
+        # Collision murs et objets
+        tx, ty = int(self.x + 0.5), int(self.y + 0.5)
+        if not self.maze.is_walkable(tx, ty):
+            # Tenter d'infliger des dégâts si c'est une tuile destructible
+            self.maze.hit_tile(tx, ty)
             self.alive = False
 
     def collides_with(self, player):
