@@ -23,7 +23,6 @@ class InputHandler:
                         if rect.collidepoint(mx, my):
                             if action == "PLAY": return True, GameState.PLAYING, pseudo
                             if action == "LEVEL_SELECT": return True, GameState.LEVEL_SELECT, pseudo
-                            if action == "STATS": return True, GameState.STATS, pseudo
                             if action == "EDITOR": return True, GameState.EDITOR, pseudo
                             if action == "QUIT": return False, game_state, pseudo
 
@@ -65,8 +64,6 @@ class InputHandler:
                     elif event.key == pygame.K_2:
                         return True, GameState.LEVEL_SELECT, pseudo
                     elif event.key == pygame.K_3:
-                        return True, GameState.STATS, pseudo
-                    elif event.key == pygame.K_4:
                         return True, GameState.EDITOR, pseudo
                     elif event.key == pygame.K_q:
                         return False, game_state, pseudo

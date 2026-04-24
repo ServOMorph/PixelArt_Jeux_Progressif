@@ -56,7 +56,7 @@ class UIRenderer:
         self.draw_text(self.fonts.get('small'), "Appuyez sur ENTRÉE pour valider", COLORS["exit"],
                        WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 200)
 
-    def draw_menu(self):
+    def draw_menu(self, pseudo, stats):
         """Dessine l'ecran du menu principal."""
         self.screen.fill(COLORS["menu_bg"])
         self.click_areas = {}
@@ -64,11 +64,26 @@ class UIRenderer:
         self.draw_text(self.fonts.get('large'), "MAZE GAME", COLORS["exit"],
                        WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 250)
         
+        # Affichage des Stats (En haut à droite)
+        if stats:
+            stats_rect = pygame.Rect(WINDOW_WIDTH - 300, 20, 280, 140)
+            pygame.draw.rect(self.screen, (40, 40, 60), stats_rect, border_radius=10)
+            pygame.draw.rect(self.screen, COLORS["player"], stats_rect, 2, border_radius=10)
+            
+            # Titre / Pseudo
+            p_text = self.fonts.get('menu_small').render(f"Profil: {pseudo}", True, COLORS["player"])
+            self.screen.blit(p_text, (stats_rect.x + 15, stats_rect.y + 10))
+            
+            # Détails
+            s_font = self.fonts.get('controls')
+            self.screen.blit(s_font.render(f"Niveaux: {stats['levels_completed']}", True, COLORS["white"]), (stats_rect.x + 15, stats_rect.y + 50))
+            self.screen.blit(s_font.render(f"Morts: {stats['deaths']}", True, COLORS["white"]), (stats_rect.x + 15, stats_rect.y + 80))
+            self.screen.blit(s_font.render(f"Record: Lvl {stats['best_level']}", True, COLORS["white"]), (stats_rect.x + 15, stats_rect.y + 110))
+
         options = [
             ("1. Jouer (Niveau 1)", "PLAY"),
             ("2. Choisir un Niveau", "LEVEL_SELECT"),
-            ("3. Statistiques", "STATS"),
-            ("4. Editeur de Niveau", "EDITOR"),
+            ("3. Editeur de Niveau", "EDITOR"),
             ("Q. Quitter", "QUIT")
         ]
         

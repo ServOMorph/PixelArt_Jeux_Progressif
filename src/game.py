@@ -8,7 +8,7 @@ from src.entities import Player, Mob
 from src.data_manager import DataManager
 from src.ui import FontManager, UIRenderer, GameRenderer
 from src.input_handler import InputHandler
-from src.editor import LevelEditor
+from src.editeur.core import LevelEditor
 
 pygame.init()
 
@@ -149,7 +149,7 @@ class Game:
         if self.state == GameState.LOGIN:
             self.ui_renderer.draw_login(self.pseudo)
         elif self.state == GameState.MENU:
-            self.ui_renderer.draw_menu()
+            self.ui_renderer.draw_menu(self.pseudo, self.player_stats)
         elif self.state == GameState.LEVEL_SELECT:
             self.ui_renderer.draw_level_select(self.level_manager.get_all_levels_ids())
         elif self.state == GameState.STATS:

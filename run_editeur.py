@@ -9,7 +9,7 @@ from config import WINDOW_WIDTH, WINDOW_HEIGHT, FPS
 from src.constants import GameState
 from src.data_manager import DataManager
 from src.ui import FontManager
-from src.editor import LevelEditor
+from src.editeur.core import LevelEditor
 
 def run_editor():
     pygame.init()
