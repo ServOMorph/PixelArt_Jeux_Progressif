@@ -14,6 +14,7 @@ Un jeu de labyrinthe progressif en Pixel Art développé en Python avec Pygame.
 - **Ennemis Dynamiques** : Mobs patrouilleurs, traqueurs (chaser) et tireurs de missiles (shooter).
 - **Tuiles Destructibles** : Système d'arbres pouvant être détruits par les missiles (HP).
 - **Grille de Sélection** : Naviguez parmi des dizaines de niveaux via une interface claire.
+- **Thèmes Visuels** : Basculez entre le mode **Défaut** (géométrique) et le mode **Chiadé** (Pixel Art Premium).
 
 ## 🛠️ Installation
 
@@ -35,8 +36,9 @@ python run.py
 
 ### Contrôles en Jeu
 - **Z / Q / S / D** : Déplacement du personnage.
-- **SOURIS** : Clic sur les boutons de menu et options.
-- **ECHAP** : Retour au menu principal.
+- **SOURIS** : Clic sur les boutons de menu, options et édition.
+- **ECHAP** : Retour au menu principal (ou retour à l'éditeur depuis le mode test).
+- **Options** : Menu dédié pour configurer le mode de rendu graphique.
 
 ## 🏗️ Éditeur de Niveaux
 

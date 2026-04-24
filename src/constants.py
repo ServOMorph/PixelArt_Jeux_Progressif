@@ -11,6 +11,7 @@ class GameState(IntEnum):
     STATS = 5
     GAME_OVER = 6
     EDITOR = 7
+    OPTIONS = 8
 
 
 EXIT_X, EXIT_Y = 15, 13

@@ -84,6 +84,7 @@ class UIRenderer:
             ("1. Jouer (Niveau 1)", "PLAY"),
             ("2. Choisir un Niveau", "LEVEL_SELECT"),
             ("3. Editeur de Niveau", "EDITOR"),
+            ("4. Options", "OPTIONS"),
             ("Q. Quitter", "QUIT")
         ]
         
@@ -181,14 +182,40 @@ class UIRenderer:
                                    WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 250)
         self.click_areas["QUIT"] = rect_quit
 
+    def draw_options(self, render_mode):
+        """Dessine l'ecran des options."""
+        self.screen.fill(COLORS["menu_bg"])
+        self.click_areas = {}
+        
+        self.draw_text(self.fonts.get('large'), "OPTIONS", COLORS["player"],
+                       WINDOW_WIDTH // 2, 150)
+        
+        self.draw_text(self.fonts.get('medium'), "Modèle Graphique :", COLORS["white"],
+                       WINDOW_WIDTH // 2, 300)
+        
+        # Bouton Toggle
+        mode_text = f"MODE : {render_mode}"
+        rect_mode = self.draw_text(self.fonts.get('large'), mode_text, (0, 255, 255),
+                                   WINDOW_WIDTH // 2, 400)
+        self.click_areas["TOGGLE_RENDER"] = rect_mode
+        
+        desc = "CHIADÉ = Pixel Art détaillé | DÉFAUT = Géométrique simple"
+        self.draw_text(self.fonts.get('small'), desc, (150, 150, 150),
+                       WINDOW_WIDTH // 2, 480)
+        
+        rect_back = self.draw_text(self.fonts.get('small'), "Appuyez sur ESC pour retour", COLORS["exit"],
+                                   WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100)
+        self.click_areas["BACK"] = rect_back
+
 
 class GameRenderer:
     """Gere le rendu du jeu en cours."""
 
-    def __init__(self, screen, font_manager, level):
+    def __init__(self, screen, font_manager, level, render_mode="CHIADÉ"):
         self.screen = screen
         self.fonts = font_manager
         self.level = level
+        self.render_mode = render_mode
         self._calculate_offsets()
 
     def _calculate_offsets(self):
@@ -215,7 +242,13 @@ class GameRenderer:
             TILE_SIZE
         )
 
-        # Couleurs spécifiques au niveau ou défaut
+        if self.render_mode == "CHIADÉ":
+            self._draw_tile_chiade(x, y, tile, rect)
+        else:
+            self._draw_tile_defaut(x, y, tile, rect)
+
+    def _draw_tile_defaut(self, x, y, tile, rect):
+        """Rendu simple géométrique."""
         wall_color = self.level.colors.get("wall", COLORS["wall"])
         border_color = self.level.colors.get("wall_border", COLORS["wall_border"])
         path_color = self.level.colors.get("path", COLORS["path"])
@@ -223,25 +256,33 @@ class GameRenderer:
 
         if tile == 1: # WALL
             pygame.draw.rect(self.screen, wall_color, rect)
-            if self.level.id == 2:
-                # Style forêt : ajout d'un petit "feuillage" interne
-                pygame.draw.rect(self.screen, border_color, rect.inflate(-12, -12))
-            else:
-                pygame.draw.rect(self.screen, border_color, rect, 2)
+            pygame.draw.rect(self.screen, border_color, rect, 2)
         elif tile == 2: # TREE
-            # Changement de couleur selon les HP
-            hp = self.level.tile_states.get((x, y), 3)
-            # Plus de HP = plus clair, Moins de HP = plus foncé/brun
-            factor = hp / 3.0
-            current_tree_color = (
-                int(tree_color[0] * factor + 50 * (1-factor)),
-                int(tree_color[1] * factor + 30 * (1-factor)),
-                int(tree_color[2] * factor)
-            )
-            pygame.draw.rect(self.screen, current_tree_color, rect, border_radius=10)
+            pygame.draw.rect(self.screen, tree_color, rect, border_radius=10)
             pygame.draw.rect(self.screen, COLORS["tree_top"], rect.inflate(-16, -16), border_radius=5)
         else: # PATH
             pygame.draw.rect(self.screen, path_color, rect)
+
+    def _draw_tile_chiade(self, x, y, tile, rect):
+        """Rendu Pixel Art Premium."""
+        if tile == 1: # MUR BRICK
+            pygame.draw.rect(self.screen, (60, 60, 80), rect)
+            bh, bw = 8, 16
+            for by in range(0, TILE_SIZE, bh):
+                offset = (by // bh % 2) * (bw // 2)
+                for bx in range(-bw, TILE_SIZE, bw):
+                    b_rect = pygame.Rect(rect.x + bx + offset, rect.y + by, bw-2, bh-2)
+                    if rect.contains(b_rect):
+                        pygame.draw.rect(self.screen, (80, 80, 110), b_rect)
+                        pygame.draw.rect(self.screen, (100, 100, 140), b_rect.inflate(-2, -2), 1)
+        elif tile == 2: # ARBRE
+            pygame.draw.circle(self.screen, (34, 139, 34), rect.center, 18)
+            pygame.draw.circle(self.screen, (50, 160, 50), rect.center, 12)
+            pygame.draw.rect(self.screen, (101, 67, 33), (rect.centerx-3, rect.centery, 6, 15))
+        else: # SOL
+            pygame.draw.rect(self.screen, (25, 25, 35), rect)
+            for px, py in [(5,5), (25,10), (15,25), (32,32)]:
+                pygame.draw.rect(self.screen, (35, 35, 50), (rect.x+px, rect.y+py, 2, 2))
 
     def draw_exit(self):
         """Dessine la sortie."""
@@ -251,27 +292,52 @@ class GameRenderer:
             TILE_SIZE,
             TILE_SIZE
         )
-        exit_color = self.level.colors.get("exit", COLORS["exit"])
-        pygame.draw.rect(self.screen, exit_color, exit_rect)
-        pygame.draw.rect(self.screen, COLORS["exit_border"], exit_rect, 3)
+        if self.render_mode == "CHIADÉ":
+            pygame.draw.circle(self.screen, (255, 20, 147), exit_rect.center, 15, 3)
+            pygame.draw.circle(self.screen, (255, 255, 255), exit_rect.center, 5)
+        else:
+            exit_color = self.level.colors.get("exit", COLORS["exit"])
+            pygame.draw.rect(self.screen, exit_color, exit_rect)
+            pygame.draw.rect(self.screen, COLORS["exit_border"], exit_rect, 3)
 
     def draw_player(self, player):
         """Dessine le joueur."""
         pos_x, pos_y = player.get_pixel_position(self.offset_x, self.offset_y)
         player_rect = pygame.Rect(pos_x + 5, pos_y + 5, TILE_SIZE - 10, TILE_SIZE - 10)
-        pygame.draw.rect(self.screen, COLORS["player"], player_rect)
-        pygame.draw.circle(self.screen, COLORS["player_eye"], player_rect.center, 8)
+        
+        if self.render_mode == "CHIADÉ":
+            pygame.draw.circle(self.screen, (0, 255, 255), player_rect.center, 15, 2)
+            pygame.draw.circle(self.screen, (0, 255, 255), player_rect.center, 8)
+        else:
+            pygame.draw.rect(self.screen, COLORS["player"], player_rect)
+            pygame.draw.circle(self.screen, COLORS["player_eye"], player_rect.center, 8)
 
     def draw_mobs(self, mobs):
         """Dessine les ennemis."""
         for mob in mobs:
             pos_x, pos_y = mob.get_pixel_position(self.offset_x, self.offset_y)
-            mob_rect = pygame.Rect(pos_x + 8, pos_y + 8, TILE_SIZE - 16, TILE_SIZE - 16)
-            pygame.draw.rect(self.screen, COLORS["mob"], mob_rect)
-            # Yeux de mob
-            eye_w = 6
-            pygame.draw.rect(self.screen, COLORS["mob_eye"], (mob_rect.x + 5, mob_rect.y + 8, eye_w, eye_w))
-            pygame.draw.rect(self.screen, COLORS["mob_eye"], (mob_rect.right - 5 - eye_w, mob_rect.y + 8, eye_w, eye_w))
+            rect = pygame.Rect(pos_x, pos_y, TILE_SIZE, TILE_SIZE)
+            cx, cy = rect.center
+            
+            if self.render_mode == "CHIADÉ":
+                if mob.pattern == "horizontal": # SLIME
+                    pygame.draw.ellipse(self.screen, (255, 140, 0), (cx-15, cy-10, 30, 25))
+                    pygame.draw.circle(self.screen, (255, 255, 255), (cx-6, cy-2), 3)
+                    pygame.draw.circle(self.screen, (255, 255, 255), (cx+6, cy-2), 3)
+                elif mob.pattern == "vertical": # SPECTRE
+                    pygame.draw.polygon(self.screen, (150, 0, 200), [(cx, cy-18), (cx-15, cy+10), (cx+15, cy+10)])
+                elif mob.pattern == "chaser": # OEIL
+                    pygame.draw.circle(self.screen, (200, 200, 0), (cx, cy), 16)
+                    pygame.draw.circle(self.screen, (255, 255, 255), (cx, cy), 10)
+                    pygame.draw.circle(self.screen, (255, 0, 0), (cx, cy), 5)
+                else: # SHOOTER
+                    pygame.draw.rect(self.screen, (0, 180, 100), (cx-12, cy-12, 24, 24), border_radius=4)
+                    pygame.draw.rect(self.screen, (200, 255, 200), (cx-4, cy-4, 8, 8))
+            else:
+                mob_rect = pygame.Rect(pos_x + 8, pos_y + 8, TILE_SIZE - 16, TILE_SIZE - 16)
+                pygame.draw.rect(self.screen, COLORS["mob"], mob_rect)
+                pygame.draw.rect(self.screen, COLORS["mob_eye"], (mob_rect.x + 5, mob_rect.y + 8, 6, 6))
+                pygame.draw.rect(self.screen, COLORS["mob_eye"], (mob_rect.right - 11, mob_rect.y + 8, 6, 6))
 
     def draw_projectiles(self, projectiles):
         """Dessine les projectiles."""

@@ -33,6 +33,11 @@ class Game:
         self.ui_renderer = UIRenderer(self.screen, self.font_manager)
         self.editor = LevelEditor(self.screen, self.font_manager, self.data_manager)
 
+        # Config globale
+        config = self.data_manager.get_config()
+        self.render_mode = config.get("render_mode", "CHIADÉ")
+        self.editor.render_mode = self.render_mode
+
         self.player_stats = None
         self.current_level = 1
         self.player = None
@@ -72,7 +77,7 @@ class Game:
                     self.mobs.append(mob)
                     
                 self.projectiles = []
-                self.game_renderer = GameRenderer(self.screen, self.font_manager, level)
+                self.game_renderer = GameRenderer(self.screen, self.font_manager, level, render_mode=self.render_mode)
                 self.state = GameState.PLAYING
             else:
                 print(f"Erreur: Niveau {level_id} non trouvé")
@@ -101,11 +106,20 @@ class Game:
             return True
 
         # 2. Gestion pour les autres états via InputHandler
-        running, next_state, updated_pseudo = self.input_handler.handle_events(self.state, self.pseudo, self.ui_renderer)
+        running, next_state, updated_pseudo = self.input_handler.handle_events(
+            self.state, self.pseudo, self.ui_renderer, self.is_testing
+        )
         self.pseudo = updated_pseudo
 
         if not running:
             return False
+
+        # Gestion du toggle de rendu dans les options
+        if next_state == "TOGGLE_RENDER":
+            self.render_mode = "CHIADÉ" if self.render_mode == "DÉFAUT" else "DÉFAUT"
+            self.data_manager.update_config(render_mode=self.render_mode)
+            self.editor.render_mode = self.render_mode
+            return True
 
         # 3. Traitement des transitions d'état spéciales
         if isinstance(next_state, tuple) and next_state[0] == "START_LEVEL":
@@ -128,6 +142,10 @@ class Game:
                 self.start_level(self.level_manager.get_next_level_id())
             else:
                 self.state = GameState.MENU
+        elif next_state == GameState.EDITOR and self.state == GameState.PLAYING:
+            # Retour manuel depuis le mode TEST via ESC
+            self.state = GameState.EDITOR
+            self.is_testing = False
         else:
             self.state = next_state
 
@@ -190,7 +208,7 @@ class Game:
             mob = create_mob(m_data, test_level)
             self.mobs.append(mob)
             
-        self.game_renderer = GameRenderer(self.screen, self.font_manager, test_level)
+        self.game_renderer = GameRenderer(self.screen, self.font_manager, test_level, render_mode=self.render_mode)
         self.state = GameState.PLAYING
         self.is_testing = True
         self.projectiles = []
@@ -215,6 +233,8 @@ class Game:
             self.ui_renderer.draw_menu(self.pseudo, self.player_stats)
         elif self.state == GameState.LEVEL_SELECT:
             self.ui_renderer.draw_level_select(self.level_manager.get_all_levels_ids())
+        elif self.state == GameState.OPTIONS:
+            self.ui_renderer.draw_options(self.render_mode)
         elif self.state == GameState.STATS:
             self.ui_renderer.draw_stats(self.pseudo, self.player_stats)
         elif self.state == GameState.PLAYING and self.game_renderer and self.player:

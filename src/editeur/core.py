@@ -42,6 +42,8 @@ class LevelEditor:
         self.exit_editor_rect = pygame.Rect(WINDOW_WIDTH - 200, 140, 160, 50)
         self.clear_rect = pygame.Rect(WINDOW_WIDTH - 200, 200, 160, 50)
         self.id_input_rect = pygame.Rect(self.sidebar_width + 20, 20, 150, 45)
+        self.theme_toggle_rect = pygame.Rect(self.sidebar_width + 180, 20, 160, 45)
+        self.render_mode = "CHIADÉ" # "DÉFAUT" ou "CHIADÉ"
         
         self.is_typing_id = False
         self.level_id_str = "101"
@@ -80,6 +82,9 @@ class LevelEditor:
         self.save_id_rect = pygame.Rect(self.save_panel_rect.x + 50, self.save_panel_rect.y + 100, 200, 60)
         self.save_name_rect = pygame.Rect(self.save_panel_rect.x + 50, self.save_panel_rect.y + 220, 600, 60)
         self.save_focus = "id" # "id" ou "name"
+        
+        self.show_confirm_save = False
+        self.confirm_panel_rect = pygame.Rect(WINDOW_WIDTH // 2 - 250, WINDOW_HEIGHT // 2 - 100, 500, 200)
         
         # Liste des noms utilisés
         self.used_names = []

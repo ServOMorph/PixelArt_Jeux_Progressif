@@ -23,8 +23,14 @@ def handle_editor_events(editor):
                 if event.key == pygame.K_RETURN:
                     if editor.save_focus == "id": editor.save_focus = "name"
                     else:
-                        editor.save_level()
-                        editor.show_save_panel = False
+                        # Vérifier si l'ID existe déjà
+                        try: lid = int(editor.level_id_str)
+                        except: lid = -1
+                        if any(l["id"] == lid for l in editor.loadable_levels):
+                            editor.show_confirm_save = True
+                        else:
+                            editor.save_level()
+                            editor.show_save_panel = False
                 elif event.key == pygame.K_BACKSPACE:
                     if editor.save_focus == "id": editor.level_id_str = editor.level_id_str[:-1]
                     else: editor.level_name = editor.level_name[:-1]
@@ -33,6 +39,16 @@ def handle_editor_events(editor):
                 else:
                     if editor.save_focus == "id" and event.unicode.isdigit(): editor.level_id_str += event.unicode
                     elif editor.save_focus == "name": editor.level_name += event.unicode
+                return "EDITOR"
+
+            # Confirmation Ecrasement (Nouveau)
+            if editor.show_confirm_save:
+                if event.key == pygame.K_RETURN:
+                    editor.save_level()
+                    editor.show_confirm_save = False
+                    editor.show_save_panel = False
+                elif event.key == pygame.K_ESCAPE:
+                    editor.show_confirm_save = False
                 return "EDITOR"
 
             # Confirmation Suppression
@@ -115,13 +131,32 @@ def handle_editor_events(editor):
                 return "EDITOR"
 
             # Panel Sauvegarde
-            if editor.show_save_panel:
+            if editor.show_save_panel and not editor.show_confirm_save:
                 if editor.confirm_save_rect.collidepoint(mx, my):
-                    editor.save_level()
-                    editor.show_save_panel = False
+                    # Vérifier si l'ID existe déjà pour confirmation
+                    try: lid = int(editor.level_id_str)
+                    except: lid = -1
+                    if any(l["id"] == lid for l in editor.loadable_levels):
+                        editor.show_confirm_save = True
+                    else:
+                        editor.save_level()
+                        editor.show_save_panel = False
                 elif editor.cancel_save_rect.collidepoint(mx, my): editor.show_save_panel = False
                 elif editor.save_id_rect.collidepoint(mx, my): editor.save_focus = "id"
                 elif editor.save_name_rect.collidepoint(mx, my): editor.save_focus = "name"
+                return "EDITOR"
+
+            # Clic Panel Confirmation Ecrasement
+            if editor.show_confirm_save:
+                # Réutiliser les rects de confirmation/annulation (on peut les adapter ou en créer d'autres)
+                # Pour faire simple, on divise le panel de confirmation en deux zones
+                if editor.confirm_panel_rect.collidepoint(mx, my):
+                    if mx < editor.confirm_panel_rect.centerx: # Zone Gauche : OUI
+                        editor.save_level()
+                        editor.show_confirm_save = False
+                        editor.show_save_panel = False
+                    else: # Zone Droite : NON
+                        editor.show_confirm_save = False
                 return "EDITOR"
 
             # Boutons
@@ -147,6 +182,8 @@ def handle_editor_events(editor):
             # Clic sur l'ID (Top Bar)
             if editor.id_input_rect.collidepoint(mx, my):
                 editor.is_typing_id = True
+            elif editor.theme_toggle_rect.collidepoint(mx, my):
+                editor.render_mode = "CHIADÉ" if editor.render_mode == "DÉFAUT" else "DÉFAUT"
             else:
                 editor.is_typing_id = False
 
@@ -164,11 +201,11 @@ def handle_editor_events(editor):
     return "EDITOR"
 
 def _open_save_modal(editor):
-    """Réinitialise et ouvre le modal de sauvegarde."""
-    editor.level_id_str = ""
-    editor.level_name = ""
+    """Ouvre le modal de sauvegarde en gardant les valeurs actuelles."""
+    # On ne réinitialise plus, on garde ce qui est en cours
     editor.save_focus = "id"
     editor.show_save_panel = True
+    editor.show_confirm_save = False
 
 def apply_tool_logic(editor, x, y, erase=False):
     """Applique l'outil selectionne ou efface a la case (x, y)."""

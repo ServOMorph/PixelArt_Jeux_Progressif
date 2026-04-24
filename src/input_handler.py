@@ -6,7 +6,7 @@ from src.constants import GameState
 class InputHandler:
     """Gere les entrees utilisateur."""
 
-    def handle_events(self, game_state, pseudo="", ui_renderer=None):
+    def handle_events(self, game_state, pseudo="", ui_renderer=None, is_testing=False):
         """Gere les evenements clavier et souris.
 
         Retourne (running, new_state, updated_pseudo)
@@ -24,6 +24,7 @@ class InputHandler:
                             if action == "PLAY": return True, GameState.PLAYING, pseudo
                             if action == "LEVEL_SELECT": return True, GameState.LEVEL_SELECT, pseudo
                             if action == "EDITOR": return True, GameState.EDITOR, pseudo
+                            if action == "OPTIONS": return True, GameState.OPTIONS, pseudo
                             if action == "QUIT": return False, game_state, pseudo
 
                 elif game_state == GameState.LEVEL_SELECT:
@@ -41,6 +42,12 @@ class InputHandler:
                             if action == "MENU": return True, GameState.MENU, pseudo
                             if action == "QUIT": return False, game_state, pseudo
 
+                elif game_state == GameState.OPTIONS:
+                    for action, rect in ui_renderer.click_areas.items():
+                        if rect.collidepoint(mx, my):
+                            if action == "TOGGLE_RENDER": return True, "TOGGLE_RENDER", pseudo
+                            if action == "BACK": return True, GameState.MENU, pseudo
+
             if event.type == pygame.KEYDOWN:
                 if game_state == GameState.LOGIN:
                     if event.key == pygame.K_RETURN and len(pseudo) > 0:
@@ -53,7 +60,7 @@ class InputHandler:
 
                 if event.key == pygame.K_ESCAPE:
                     if game_state == GameState.PLAYING:
-                        return True, GameState.MENU, pseudo
+                        return True, (GameState.EDITOR if is_testing else GameState.MENU), pseudo
                     if game_state == GameState.EDITOR: # handled in editor but backup
                         return True, GameState.MENU, pseudo
                     return False, game_state, pseudo
@@ -65,6 +72,8 @@ class InputHandler:
                         return True, GameState.LEVEL_SELECT, pseudo
                     elif event.key == pygame.K_3:
                         return True, GameState.EDITOR, pseudo
+                    elif event.key == pygame.K_4:
+                        return True, GameState.OPTIONS, pseudo
                     elif event.key == pygame.K_q:
                         return False, game_state, pseudo
 
@@ -75,7 +84,7 @@ class InputHandler:
                     elif event.key == pygame.K_ESCAPE:
                         return True, GameState.MENU, pseudo
 
-                elif game_state == GameState.STATS:
+                elif game_state == GameState.STATS or game_state == GameState.OPTIONS:
                     return True, GameState.MENU, pseudo
 
                 elif game_state == GameState.WIN:

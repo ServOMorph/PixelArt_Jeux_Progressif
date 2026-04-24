@@ -22,33 +22,30 @@ def draw_editor(editor):
     id_text = editor.fonts.get('small').render(f"ID: {display_id}", True, COLORS["white"])
     editor.screen.blit(id_text, (editor.id_input_rect.x + 10, editor.id_input_rect.y + 10))
 
+    # Bouton Toggle Thème
+    bg_theme = (0, 200, 200) if editor.render_mode == "CHIADÉ" else (60, 60, 80)
+    pygame.draw.rect(editor.screen, bg_theme, editor.theme_toggle_rect, border_radius=5)
+    pygame.draw.rect(editor.screen, COLORS["white"], editor.theme_toggle_rect, 1, border_radius=5)
+    theme_text = editor.fonts.get('small').render(f"Mode: {editor.render_mode}", True, COLORS["white"])
+    editor.screen.blit(theme_text, (editor.theme_toggle_rect.centerx - theme_text.get_width()//2, editor.theme_toggle_rect.centery - theme_text.get_height()//2))
+
     # Grille
     for y in range(editor.grid_h):
         for x in range(editor.grid_w):
             rect = pygame.Rect(editor.offset_x + x * editor.tile_size, editor.offset_y + y * editor.tile_size, editor.tile_size, editor.tile_size)
             
-            if editor.maze[y][x] == 1:
-                pygame.draw.rect(editor.screen, COLORS["wall"], rect)
-                pygame.draw.rect(editor.screen, COLORS["wall_border"], rect, 1)
-            elif editor.maze[y][x] == 2:
-                pygame.draw.rect(editor.screen, COLORS["tree"], rect, border_radius=8)
-                pygame.draw.rect(editor.screen, COLORS["tree_top"], rect.inflate(-12, -12), border_radius=4)
+            if editor.render_mode == "CHIADÉ":
+                _draw_tile_chiade(editor, x, y, rect)
             else:
-                pygame.draw.rect(editor.screen, COLORS["path"], rect)
-                pygame.draw.rect(editor.screen, (40, 40, 60), rect, 1)
+                _draw_tile_defaut(editor, x, y, rect)
             
-            if [x, y] == editor.start_pos:
-                pygame.draw.rect(editor.screen, COLORS["player"], rect.inflate(-12, -12))
-            elif [x, y] == editor.exit_pos:
-                pygame.draw.rect(editor.screen, COLORS["exit"], rect.inflate(-12, -12))
-            
+            # Dessin des mobs sur la grille
             for mob in editor.mobs:
                 if mob["start_pos"] == [x, y]:
-                    if mob["pattern"] == "horizontal": color = (255, 165, 0) # Orange
-                    elif mob["pattern"] == "vertical": color = (180, 0, 255) # Violet
-                    elif mob["pattern"] == "chaser": color = (255, 255, 0) # Jaune (Trackeur)
-                    else: color = (0, 255, 128) # Vert (Missile/Shooter)
-                    pygame.draw.circle(editor.screen, color, rect.center, editor.tile_size // 3)
+                    if editor.render_mode == "CHIADÉ":
+                        _draw_mob_chiade(editor, mob, rect)
+                    else:
+                        _draw_mob_defaut(editor, mob, rect)
                     
                     # Bouton Réglages sur le mob
                     settings_rect = pygame.Rect(rect.right - 15, rect.y + 2, 12, 12)
@@ -119,8 +116,84 @@ def _draw_tool_preview(editor, tool, rect):
         surf = editor.fonts.get('small').render(text, True, COLORS["white"])
         editor.screen.blit(surf, (r.centerx - surf.get_width() // 2, r.centery - surf.get_height() // 2))
 
+def _draw_tile_defaut(editor, x, y, rect):
+    """Rendu simple géométrique."""
+    if editor.maze[y][x] == 1:
+        pygame.draw.rect(editor.screen, COLORS["wall"], rect)
+        pygame.draw.rect(editor.screen, COLORS["wall_border"], rect, 1)
+    elif editor.maze[y][x] == 2:
+        pygame.draw.rect(editor.screen, COLORS["tree"], rect, border_radius=8)
+        pygame.draw.rect(editor.screen, COLORS["tree_top"], rect.inflate(-12, -12), border_radius=4)
+    else:
+        pygame.draw.rect(editor.screen, COLORS["path"], rect)
+        pygame.draw.rect(editor.screen, (40, 40, 60), rect, 1)
+    
+    if [x, y] == editor.start_pos:
+        pygame.draw.rect(editor.screen, COLORS["player"], rect.inflate(-12, -12))
+    elif [x, y] == editor.exit_pos:
+        pygame.draw.rect(editor.screen, COLORS["exit"], rect.inflate(-12, -12))
+
+def _draw_tile_chiade(editor, x, y, rect):
+    """Rendu Pixel Art Premium avec détails."""
+    if editor.maze[y][x] == 1: # MUR BRICK STYLE
+        pygame.draw.rect(editor.screen, (60, 60, 80), rect) # Fond sombre
+        # Dessiner des briques
+        bh, bw = 8, 16
+        for by in range(0, editor.tile_size, bh):
+            offset = (by // bh % 2) * (bw // 2)
+            for bx in range(-bw, editor.tile_size, bw):
+                b_rect = pygame.Rect(rect.x + bx + offset, rect.y + by, bw-2, bh-2)
+                if rect.contains(b_rect):
+                    pygame.draw.rect(editor.screen, (80, 80, 110), b_rect)
+                    pygame.draw.rect(editor.screen, (100, 100, 140), b_rect.inflate(-2, -2), 1) # Highlight
+    elif editor.maze[y][x] == 2: # ARBRE CHIADE
+        pygame.draw.circle(editor.screen, (34, 139, 34), rect.center, 18) # Feuillage
+        pygame.draw.circle(editor.screen, (50, 160, 50), rect.center, 12) # Highlight
+        pygame.draw.rect(editor.screen, (101, 67, 33), (rect.centerx-3, rect.centery, 6, 15)) # Tronc
+    else: # SOL TEXTURE
+        pygame.draw.rect(editor.screen, (25, 25, 35), rect)
+        # Petits points de texture
+        for px, py in [(5,5), (25,10), (15,25), (32,32)]:
+            pygame.draw.rect(editor.screen, (35, 35, 50), (rect.x+px, rect.y+py, 2, 2))
+
+    # Start/Exit Premium
+    if [x, y] == editor.start_pos:
+        pygame.draw.circle(editor.screen, (0, 255, 255), rect.center, 15, 2)
+        pygame.draw.circle(editor.screen, (0, 255, 255), rect.center, 8)
+    elif [x, y] == editor.exit_pos:
+        # Portail tourbillonnant
+        pygame.draw.circle(editor.screen, (255, 20, 147), rect.center, 15, 3)
+        pygame.draw.circle(editor.screen, (255, 255, 255), rect.center, 5)
+
+def _draw_mob_defaut(editor, mob, rect):
+    if mob["pattern"] == "horizontal": color = (255, 165, 0) 
+    elif mob["pattern"] == "vertical": color = (180, 0, 255) 
+    elif mob["pattern"] == "chaser": color = (255, 255, 0) 
+    else: color = (0, 255, 128) 
+    pygame.draw.circle(editor.screen, color, rect.center, editor.tile_size // 3)
+
+def _draw_mob_chiade(editor, mob, rect):
+    """Rendu Mob avec détails (Pixel Art style)."""
+    cx, cy = rect.center
+    if mob["pattern"] == "horizontal": # SLIME ORANGE
+        pygame.draw.ellipse(editor.screen, (255, 140, 0), (cx-15, cy-10, 30, 25))
+        pygame.draw.circle(editor.screen, (255, 255, 255), (cx-6, cy-2), 3) # Oeil G
+        pygame.draw.circle(editor.screen, (255, 255, 255), (cx+6, cy-2), 3) # Oeil D
+    elif mob["pattern"] == "vertical": # SPECTRE VIOLET
+        pygame.draw.polygon(editor.screen, (150, 0, 200), [(cx, cy-18), (cx-15, cy+10), (cx+15, cy+10)])
+        pygame.draw.circle(editor.screen, (0, 0, 0), (cx, cy), 4) # Noyau
+    elif mob["pattern"] == "chaser": # OEIL VOLANT
+        pygame.draw.circle(editor.screen, (200, 200, 0), (cx, cy), 16)
+        pygame.draw.circle(editor.screen, (255, 255, 255), (cx, cy), 10)
+        pygame.draw.circle(editor.screen, (255, 0, 0), (cx, cy), 5) # Pupille
+    else: # TOURELLE SHOOTER
+        pygame.draw.rect(editor.screen, (0, 180, 100), (cx-12, cy-12, 24, 24), border_radius=4)
+        pygame.draw.rect(editor.screen, (200, 255, 200), (cx-4, cy-4, 8, 8)) # Canon
+
     if editor.show_save_panel:
         draw_save_panel(editor)
+    if editor.show_confirm_save:
+        draw_confirm_save(editor)
     if editor.show_delete_panel:
         draw_delete_confirm(editor)
     if editor.mob_editor.visible:
@@ -245,3 +318,24 @@ def draw_save_panel(editor):
     for i, name in enumerate(editor.used_names[:8]):
         txt = editor.fonts.get('controls').render(f"- {name}", True, (120, 120, 120))
         editor.screen.blit(txt, (side_x, editor.save_panel_rect.y + 130 + i * 25))
+
+def draw_confirm_save(editor):
+    """Affiche une petite boîte de dialogue de confirmation par-dessus tout."""
+    # Overlay léger
+    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 100))
+    editor.screen.blit(overlay, (0, 0))
+    
+    r = editor.confirm_panel_rect
+    pygame.draw.rect(editor.screen, (40, 40, 70), r, border_radius=10)
+    pygame.draw.rect(editor.screen, (255, 200, 0), r, 3, border_radius=10)
+    
+    txt = editor.fonts.get('small').render("ID EXISTANT : ÉCRASER LE NIVEAU ?", True, (255, 255, 255))
+    editor.screen.blit(txt, (r.centerx - txt.get_width()//2, r.y + 40))
+    
+    # Aide visuelle pour les boutons
+    yes_txt = editor.fonts.get('medium').render("OUI (Entrée)", True, (0, 255, 100))
+    no_txt = editor.fonts.get('medium').render("NON (Echap)", True, (255, 80, 80))
+    
+    editor.screen.blit(yes_txt, (r.x + 80, r.y + 110))
+    editor.screen.blit(no_txt, (r.x + 280, r.y + 110))

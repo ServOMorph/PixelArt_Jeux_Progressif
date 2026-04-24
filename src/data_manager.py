@@ -49,6 +49,22 @@ class DataManager:
             stats["best_level"] = max(stats["best_level"], level_won)
         self._save_data()
 
+    def get_config(self):
+        """Retourne la configuration globale."""
+        if "config" not in self.data:
+            self.data["config"] = {
+                "render_mode": "CHIADÉ"
+            }
+            self._save_data()
+        return self.data["config"]
+
+    def update_config(self, **kwargs):
+        """Met à jour la configuration globale."""
+        config = self.get_config()
+        for key, value in kwargs.items():
+            config[key] = value
+        self._save_data()
+
     def load_custom_levels(self):
         """Charge les niveaux personnalisés."""
         path = os.path.join("levels", "custom_levels.json")
