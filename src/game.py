@@ -78,10 +78,26 @@ class Game:
             self.state = GameState.PLAYING
 
     def handle_events(self):
-        """Gere les evenements."""
+        """Gère les événements."""
+        # 1. Gestion spécifique pour l'ÉDITEUR
+        if self.state == GameState.EDITOR:
+            res = self.editor.handle_events()
+            if res == "QUIT":
+                return False
+            elif res == "MENU":
+                # Recharger les niveaux pour inclure les nouveaux
+                self.level_manager = LevelManager(self.data_manager.load_custom_levels())
+                self.state = GameState.MENU
+            return True
+
+        # 2. Gestion pour les autres états via InputHandler
         running, next_state, updated_pseudo = self.input_handler.handle_events(self.state, self.pseudo, self.ui_renderer)
         self.pseudo = updated_pseudo
 
+        if not running:
+            return False
+
+        # 3. Traitement des transitions d'état spéciales
         if isinstance(next_state, tuple) and next_state[0] == "START_LEVEL":
             self.start_level(next_state[1])
         elif next_state == GameState.MENU and self.state == GameState.LOGIN:
@@ -95,16 +111,6 @@ class Game:
                 self.start_level(self.level_manager.get_next_level_id())
             else:
                 self.state = GameState.MENU
-        elif self.state == GameState.EDITOR:
-            res = self.editor.handle_events()
-            if res == "QUIT":
-                return False
-            elif res == "MENU":
-                # Recharger les niveaux pour inclure les nouveaux
-                self.level_manager = LevelManager(self.data_manager.load_custom_levels())
-                self.state = GameState.MENU
-            else:
-                self.state = GameState.EDITOR
         else:
             self.state = next_state
 
