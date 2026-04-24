@@ -1,33 +1,37 @@
 # -*- coding: utf-8 -*-
 import pygame
 import sys
-from config import WINDOW_WIDTH, WINDOW_HEIGHT, FPS
+from config import WINDOW_WIDTH, WINDOW_HEIGHT, FPS, DEV_MODE
 from src.constants import GameState
 from src.level import LevelManager
 from src.entities import Player, Mob
 from src.data_manager import DataManager
 from src.ui import FontManager, UIRenderer, GameRenderer
 from src.input_handler import InputHandler
+from src.editor import LevelEditor
 
 pygame.init()
 
 
 class Game:
-    """Controleur principal du jeu."""
+    """Main Game Controller.
+    
+    Coordinates between input handling, logic updates, and rendering.
+    Manages the overall GameState and player progression.
+    """
 
     def __init__(self):
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption("Pixel Art Maze Game")
         self.clock = pygame.time.Clock()
 
-        self.level_manager = LevelManager()
         self.data_manager = DataManager()
+        self.level_manager = LevelManager(self.data_manager.load_custom_levels())
         self.input_handler = InputHandler()
         self.font_manager = FontManager()
         self.ui_renderer = UIRenderer(self.screen, self.font_manager)
+        self.editor = LevelEditor(self.screen, self.font_manager, self.data_manager)
 
-        self.state = GameState.LOGIN
-        self.pseudo = ""
         self.player_stats = None
         self.current_level = 1
         self.player = None
@@ -35,8 +39,20 @@ class Game:
         self.game_renderer = None
         self.animation_frame = 0
 
-    def start_level(self, level_id):
-        """Demarre un niveau."""
+        if DEV_MODE:
+            self.pseudo = "Morpheus"
+            self.player_stats = self.data_manager.get_player_stats(self.pseudo)
+            self.state = GameState.MENU
+        else:
+            self.state = GameState.LOGIN
+            self.pseudo = ""
+
+    def start_level(self, level_id: int):
+        """Initializes and starts a specific level.
+        
+        Args:
+            level_id (int): The unique identifier of the level to load.
+        """
         if self.level_manager.set_current_level(level_id):
             self.current_level = level_id
             level = self.level_manager.get_current_level()
@@ -63,7 +79,7 @@ class Game:
 
     def handle_events(self):
         """Gere les evenements."""
-        running, next_state, updated_pseudo = self.input_handler.handle_events(self.state, self.pseudo)
+        running, next_state, updated_pseudo = self.input_handler.handle_events(self.state, self.pseudo, self.ui_renderer)
         self.pseudo = updated_pseudo
 
         if isinstance(next_state, tuple) and next_state[0] == "START_LEVEL":
@@ -79,10 +95,20 @@ class Game:
                 self.start_level(self.level_manager.get_next_level_id())
             else:
                 self.state = GameState.MENU
+        elif self.state == GameState.EDITOR:
+            res = self.editor.handle_events()
+            if res == "QUIT":
+                return False
+            elif res == "MENU":
+                # Recharger les niveaux pour inclure les nouveaux
+                self.level_manager = LevelManager(self.data_manager.load_custom_levels())
+                self.state = GameState.MENU
+            else:
+                self.state = GameState.EDITOR
         else:
             self.state = next_state
 
-        return running
+        return True
 
     def handle_game_logic(self):
         """Gere la logique du jeu (mouvements, collisions)."""
@@ -129,6 +155,8 @@ class Game:
             self.ui_renderer.draw_win(self.current_level, has_next)
         elif self.state == GameState.GAME_OVER:
             self.ui_renderer.draw_game_over(self.animation_frame)
+        elif self.state == GameState.EDITOR:
+            self.editor.draw()
 
         pygame.display.flip()
 

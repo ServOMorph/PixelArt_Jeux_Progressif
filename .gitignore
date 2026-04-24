@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+*.json
+!levels/custom_levels.json
+!stats.json

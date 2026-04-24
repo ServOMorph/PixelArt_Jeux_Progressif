@@ -6,14 +6,41 @@ from src.constants import GameState
 class InputHandler:
     """Gere les entrees utilisateur."""
 
-    def handle_events(self, game_state, pseudo=""):
-        """Gere les evenements clavier et fermeture.
+    def handle_events(self, game_state, pseudo="", ui_renderer=None):
+        """Gere les evenements clavier et souris.
 
         Retourne (running, new_state, updated_pseudo)
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False, game_state, pseudo
+
+            if event.type == pygame.MOUSEBUTTONDOWN and ui_renderer:
+                mx, my = pygame.mouse.get_pos()
+                
+                if game_state == GameState.MENU:
+                    for action, rect in ui_renderer.click_areas.items():
+                        if rect.collidepoint(mx, my):
+                            if action == "PLAY": return True, GameState.PLAYING, pseudo
+                            if action == "LEVEL_SELECT": return True, GameState.LEVEL_SELECT, pseudo
+                            if action == "STATS": return True, GameState.STATS, pseudo
+                            if action == "EDITOR": return True, GameState.EDITOR, pseudo
+                            if action == "QUIT": return False, game_state, pseudo
+
+                elif game_state == GameState.LEVEL_SELECT:
+                    for action, rect in ui_renderer.click_areas.items():
+                        if rect.collidepoint(mx, my):
+                            if action.startswith("LEVEL_"):
+                                level_id = int(action.split("_")[1])
+                                return True, ("START_LEVEL", level_id), pseudo
+                            if action == "BACK": return True, GameState.MENU, pseudo
+
+                elif game_state == GameState.WIN:
+                    for action, rect in ui_renderer.click_areas.items():
+                        if rect.collidepoint(mx, my):
+                            if action == "NEXT": return True, GameState.MENU, pseudo # Logic handles next level in game.py
+                            if action == "MENU": return True, GameState.MENU, pseudo
+                            if action == "QUIT": return False, game_state, pseudo
 
             if event.type == pygame.KEYDOWN:
                 if game_state == GameState.LOGIN:
@@ -28,6 +55,8 @@ class InputHandler:
                 if event.key == pygame.K_ESCAPE:
                     if game_state == GameState.PLAYING:
                         return True, GameState.MENU, pseudo
+                    if game_state == GameState.EDITOR: # handled in editor but backup
+                        return True, GameState.MENU, pseudo
                     return False, game_state, pseudo
 
                 if game_state == GameState.MENU:
@@ -37,6 +66,8 @@ class InputHandler:
                         return True, GameState.LEVEL_SELECT, pseudo
                     elif event.key == pygame.K_3:
                         return True, GameState.STATS, pseudo
+                    elif event.key == pygame.K_4:
+                        return True, GameState.EDITOR, pseudo
                     elif event.key == pygame.K_q:
                         return False, game_state, pseudo
 

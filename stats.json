@@ -4,5 +4,11 @@
         "deaths": 2,
         "time_played": 0,
         "best_level": 2
+    },
+    "Morph\u00e9us": {
+        "levels_completed": 2,
+        "deaths": 0,
+        "time_played": 0,
+        "best_level": 2
     }
 }

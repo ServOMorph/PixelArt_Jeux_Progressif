@@ -48,3 +48,26 @@ class DataManager:
             stats["levels_completed"] = max(stats["levels_completed"], level_won)
             stats["best_level"] = max(stats["best_level"], level_won)
         self._save_data()
+
+    def load_custom_levels(self):
+        """Charge les niveaux personnalisés."""
+        path = os.path.join("levels", "custom_levels.json")
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Erreur chargement niveaux perso: {e}")
+                return []
+        return []
+
+    def save_custom_levels(self, levels):
+        """Sauvegarde les niveaux personnalisés."""
+        path = os.path.join("levels", "custom_levels.json")
+        if not os.path.exists("levels"):
+            os.makedirs("levels")
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(levels, f, indent=4)
+        except Exception as e:
+            print(f"Erreur sauvegarde niveaux perso: {e}")

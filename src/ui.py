@@ -28,12 +28,14 @@ class UIRenderer:
     def __init__(self, screen, font_manager):
         self.screen = screen
         self.fonts = font_manager
+        self.click_areas = {} # { "action_name": pygame.Rect }
 
     def draw_text(self, font, text, color, center_x, y):
-        """Dessine du texte centre horizontalement."""
+        """Dessine du texte centre horizontalement et retourne son Rect."""
         surface = font.render(text, True, color)
         rect = surface.get_rect(center=(center_x, y))
         self.screen.blit(surface, rect)
+        return rect
 
     def draw_login(self, pseudo):
         """Dessine l'ecran de saisie du pseudo."""
@@ -57,34 +59,41 @@ class UIRenderer:
     def draw_menu(self):
         """Dessine l'ecran du menu principal."""
         self.screen.fill(COLORS["menu_bg"])
+        self.click_areas = {}
 
         self.draw_text(self.fonts.get('large'), "MAZE GAME", COLORS["exit"],
                        WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 250)
         
         options = [
-            "1. Jouer (Niveau 1)",
-            "2. Choisir un Niveau",
-            "3. Statistiques",
-            "Q. Quitter"
+            ("1. Jouer (Niveau 1)", "PLAY"),
+            ("2. Choisir un Niveau", "LEVEL_SELECT"),
+            ("3. Statistiques", "STATS"),
+            ("4. Editeur de Niveau", "EDITOR"),
+            ("Q. Quitter", "QUIT")
         ]
         
-        for i, opt in enumerate(options):
-            self.draw_text(self.fonts.get('medium'), opt, COLORS["white"],
-                           WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50 + i * 80)
+        for i, (text, action) in enumerate(options):
+            rect = self.draw_text(self.fonts.get('medium'), text, COLORS["white"],
+                                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50 + i * 80)
+            self.click_areas[action] = rect
 
     def draw_level_select(self, levels_ids):
         """Dessine l'ecran de selection de niveau."""
         self.screen.fill(COLORS["menu_bg"])
+        self.click_areas = {}
+        
         self.draw_text(self.fonts.get('large'), "CHOIX DU NIVEAU", COLORS["player"],
                        WINDOW_WIDTH // 2, 150)
         
         for i, lvl_id in enumerate(levels_ids):
             color = COLORS["white"]
-            self.draw_text(self.fonts.get('medium'), f"Niveau {lvl_id}", color,
-                           WINDOW_WIDTH // 2, 300 + i * 80)
+            rect = self.draw_text(self.fonts.get('medium'), f"Niveau {lvl_id}", color,
+                                  WINDOW_WIDTH // 2, 300 + i * 80)
+            self.click_areas[f"LEVEL_{lvl_id}"] = rect
         
-        self.draw_text(self.fonts.get('small'), "Appuyez sur le chiffre du niveau ou ESC pour retour", COLORS["exit"],
-                       WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100)
+        rect_back = self.draw_text(self.fonts.get('small'), "Appuyez sur ESC pour retour", COLORS["exit"],
+                                   WINDOW_WIDTH // 2, WINDOW_HEIGHT - 100)
+        self.click_areas["BACK"] = rect_back
 
     def draw_stats(self, pseudo, stats):
         """Dessine l'ecran des statistiques."""
@@ -121,6 +130,7 @@ class UIRenderer:
     def draw_win(self, current_level, has_next=False):
         """Dessine l'ecran de victoire."""
         self.screen.fill(COLORS["menu_bg"])
+        self.click_areas = {}
 
         self.draw_text(self.fonts.get('title'), "VOUS AVEZ GAGNE!", COLORS["exit"],
                        WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 150)
@@ -128,19 +138,22 @@ class UIRenderer:
                        COLORS["player"], WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 20)
 
         if has_next:
-            self.draw_text(self.fonts.get('small'),
-                           "Appuyez sur ESPACE pour le NIVEAU SUIVANT", COLORS["white"],
-                           WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 150)
+            rect = self.draw_text(self.fonts.get('small'),
+                                  "Appuyez sur ESPACE pour le NIVEAU SUIVANT", COLORS["white"],
+                                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 150)
+            self.click_areas["NEXT"] = rect
         else:
             self.draw_text(self.fonts.get('small'),
                            "Félicitations! Vous avez fini tous les niveaux.", COLORS["white"],
                            WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 120)
-            self.draw_text(self.fonts.get('small'),
-                           "Appuyez sur ESPACE pour retourner au menu", COLORS["white"],
-                           WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 180)
+            rect = self.draw_text(self.fonts.get('small'),
+                                  "Appuyez sur ESPACE pour retourner au menu", COLORS["white"],
+                                  WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 180)
+            self.click_areas["MENU"] = rect
 
-        self.draw_text(self.fonts.get('small'), "Q pour quitter", COLORS["white"],
-                       WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 250)
+        rect_quit = self.draw_text(self.fonts.get('small'), "Q pour quitter", COLORS["white"],
+                                   WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 250)
+        self.click_areas["QUIT"] = rect_quit
 
 
 class GameRenderer:

@@ -10,6 +10,7 @@ class GameState(IntEnum):
     LEVEL_SELECT = 4
     STATS = 5
     GAME_OVER = 6
+    EDITOR = 7
 
 
 EXIT_X, EXIT_Y = 15, 13

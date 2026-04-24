@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Global configuration constants for the game.
+Includes screen dimensions, colors, and developer flags.
+"""
+
+DEV_MODE = True
 
 WINDOW_WIDTH = 1920
 WINDOW_HEIGHT = 1080

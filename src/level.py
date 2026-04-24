@@ -43,20 +43,27 @@ class Level:
 class LevelManager:
     """Gere les niveaux du jeu."""
 
-    def __init__(self):
+    def __init__(self, custom_levels=[]):
         self.levels = {}
         self.current_level_id = 1
-        self._load_levels()
+        self._load_levels(custom_levels)
 
-    def _load_levels(self):
-        """Charge tous les niveaux depuis levels_config.py."""
+    def _load_levels(self, custom_levels=[]):
+        """Charge tous les niveaux depuis config et niveaux personnalisés."""
+        # Niveaux par défaut
         for level_data in ALL_LEVELS:
             level_id = level_data.get("id")
             if level_id:
                 self.levels[level_id] = Level(level_data)
 
+        # Niveaux personnalisés (IDs commencent à 100 pour éviter conflits)
+        for level_data in custom_levels:
+            level_id = level_data.get("id")
+            if level_id:
+                self.levels[level_id] = Level(level_data)
+
         if not self.levels:
-            print("Attention: Aucun niveau trouvé dans 'levels_config.py'")
+            print("Attention: Aucun niveau trouvé")
 
     def get_level(self, level_id):
         """Retourne un niveau par son ID."""
