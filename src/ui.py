@@ -8,13 +8,13 @@ class FontManager:
 
     def __init__(self):
         self.fonts = {
-            'large':      pygame.font.Font(None, 120),
-            'title':      pygame.font.Font(None, 140),
-            'medium':     pygame.font.Font(None, 70),
-            'subtitle':   pygame.font.Font(None, 60),
-            'small':      pygame.font.Font(None, 45),
-            'controls':   pygame.font.Font(None, 28),
-            'menu_small': pygame.font.Font(None, 40),
+            'large':      pygame.font.Font(None, 80),
+            'title':      pygame.font.Font(None, 100),
+            'medium':     pygame.font.Font(None, 40),
+            'subtitle':   pygame.font.Font(None, 35),
+            'small':      pygame.font.Font(None, 26),
+            'controls':   pygame.font.Font(None, 20),
+            'menu_small': pygame.font.Font(None, 28),
         }
 
     def get(self, key):
@@ -93,17 +93,28 @@ class UIRenderer:
             self.click_areas[action] = rect
 
     def draw_level_select(self, levels_ids):
-        """Dessine l'ecran de selection de niveau."""
+        """Dessine l'ecran de selection de niveau sous forme de grille."""
         self.screen.fill(COLORS["menu_bg"])
         self.click_areas = {}
         
         self.draw_text(self.fonts.get('large'), "CHOIX DU NIVEAU", COLORS["player"],
                        WINDOW_WIDTH // 2, 150)
         
+        # Grille de niveaux (4 colonnes)
+        cols = 4
+        spacing_x = 400
+        spacing_y = 100
+        start_x = (WINDOW_WIDTH - (cols - 1) * spacing_x) // 2
+        start_y = 300
+        
         for i, lvl_id in enumerate(levels_ids):
-            color = COLORS["white"]
-            rect = self.draw_text(self.fonts.get('medium'), f"Niveau {lvl_id}", color,
-                                  WINDOW_WIDTH // 2, 300 + i * 80)
+            col = i % cols
+            row = i // cols
+            x = start_x + col * spacing_x
+            y = start_y + row * spacing_y
+            
+            rect = self.draw_text(self.fonts.get('medium'), f"Niveau {lvl_id}", COLORS["white"],
+                                  x, y)
             self.click_areas[f"LEVEL_{lvl_id}"] = rect
         
         rect_back = self.draw_text(self.fonts.get('small'), "Appuyez sur ESC pour retour", COLORS["exit"],
@@ -249,6 +260,25 @@ class GameRenderer:
             pygame.draw.rect(self.screen, COLORS["mob_eye"], (mob_rect.x + 5, mob_rect.y + 8, eye_w, eye_w))
             pygame.draw.rect(self.screen, COLORS["mob_eye"], (mob_rect.right - 5 - eye_w, mob_rect.y + 8, eye_w, eye_w))
 
+    def draw_projectiles(self, projectiles):
+        """Dessine les projectiles."""
+        for p in projectiles:
+            px = self.offset_x + p.x * TILE_SIZE
+            py = self.offset_y + p.y * TILE_SIZE
+            # Missile rouge avec petit halo
+            pygame.draw.circle(self.screen, (255, 0, 0), (int(px + TILE_SIZE//2), int(py + TILE_SIZE//2)), 8)
+            pygame.draw.circle(self.screen, (255, 200, 200), (int(px + TILE_SIZE//2), int(py + TILE_SIZE//2)), 4)
+
+    def draw_game(self, player, mobs, projectiles=[]):
+        """Effectue le rendu complet d'une frame de jeu."""
+        self.screen.fill(COLORS["bg"])
+        self.draw_maze()
+        self.draw_exit()
+        self.draw_mobs(mobs)
+        self.draw_projectiles(projectiles)
+        self.draw_player(player)
+        self.draw_controls()
+
     def draw_controls(self):
         """Dessine les controles."""
         controls_text = "Z=Haut  Q=Gauche  S=Bas  D=Droite  ESC=Menu"
@@ -256,13 +286,4 @@ class GameRenderer:
             self.fonts.get('controls').render(controls_text, True, COLORS["white"]),
             (20, 20)
         )
-
-    def draw_game(self, player, mobs=[]):
-        """Dessine le jeu complet."""
-        self.screen.fill(COLORS["black"])
-        self.draw_maze()
-        self.draw_exit()
-        self.draw_mobs(mobs)
-        self.draw_player(player)
-        self.draw_controls()
 

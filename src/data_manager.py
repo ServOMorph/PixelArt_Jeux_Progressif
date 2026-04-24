@@ -71,3 +71,54 @@ class DataManager:
                 json.dump(levels, f, indent=4)
         except Exception as e:
             print(f"Erreur sauvegarde niveaux perso: {e}")
+            
+    def sync_to_python_config(self, all_levels):
+        """Synchronise tous les niveaux dans le fichier Python levels_config.py."""
+        path = os.path.join("levels", "levels_config.py")
+        
+        lines = [
+            "# -*- coding: utf-8 -*-",
+            "",
+            "# --- CONFIGURATION GLOBALE ---",
+            "DEFAULT_PLAYER_SPEED = 0.15",
+            "DEFAULT_MOB_SPEED = 0.08",
+            "",
+            "# --- NIVEAUX GÉNÉRÉS AUTOMATIQUEMENT ---",
+            ""
+        ]
+        
+        configs_names = []
+        for lvl in all_levels:
+            l_id = lvl['id']
+            name_slug = lvl['name'].replace(" ", "_").upper()
+            maze_name = f"LEVEL_{l_id}_MAZE"
+            config_name = f"LEVEL_{l_id}_CONFIG"
+            
+            lines.append(f"# {lvl['name']}")
+            lines.append(f"{maze_name} = [")
+            for row in lvl['maze']:
+                lines.append(f"    {row},")
+            lines.append("]")
+            lines.append("")
+            
+            lines.append(f"{config_name} = {{")
+            lines.append(f"    'id': {l_id},")
+            lines.append(f"    'name': {repr(lvl['name'])},")
+            lines.append(f"    'maze': {maze_name},")
+            lines.append(f"    'start_pos': {lvl['start_pos']},")
+            lines.append(f"    'exit_pos': {lvl['exit_pos']},")
+            lines.append(f"    'colors': {lvl.get('colors', {})},")
+            lines.append(f"    'mobs': {lvl.get('mobs', [])}")
+            lines.append("}")
+            lines.append("")
+            configs_names.append(config_name)
+            
+        lines.append("# --- LISTE DES NIVEAUX ---")
+        lines.append(f"ALL_LEVELS = [{', '.join(configs_names)}]")
+        
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines))
+            print(f"levels_config.py synchronisé ({len(all_levels)} niveaux).")
+        except Exception as e:
+            print(f"Erreur synchronisation Python: {e}")
