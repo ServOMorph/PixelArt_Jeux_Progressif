@@ -16,6 +16,9 @@ class InputHandler:
                 return False, game_state, pseudo
 
             if event.type == pygame.MOUSEBUTTONDOWN and ui_renderer:
+                if game_state == GameState.SPLASH:
+                    return True, GameState.LOGIN, pseudo
+                
                 mx, my = pygame.mouse.get_pos()
                 
                 if game_state == GameState.MENU:
@@ -25,6 +28,7 @@ class InputHandler:
                             if action == "LEVEL_SELECT": return True, GameState.LEVEL_SELECT, pseudo
                             if action == "EDITOR": return True, GameState.EDITOR, pseudo
                             if action == "OPTIONS": return True, GameState.OPTIONS, pseudo
+                            if action == "IA_TEST": return True, GameState.IA_TEST, pseudo
                             if action == "QUIT": return False, game_state, pseudo
 
                 elif game_state == GameState.LEVEL_SELECT:
@@ -49,6 +53,9 @@ class InputHandler:
                             if action == "BACK": return True, GameState.MENU, pseudo
 
             if event.type == pygame.KEYDOWN:
+                if game_state == GameState.SPLASH:
+                    return True, GameState.LOGIN, pseudo
+
                 if game_state == GameState.LOGIN:
                     if event.key == pygame.K_RETURN and len(pseudo) > 0:
                         return True, GameState.MENU, pseudo
@@ -74,6 +81,8 @@ class InputHandler:
                         return True, GameState.EDITOR, pseudo
                     elif event.key == pygame.K_4:
                         return True, GameState.OPTIONS, pseudo
+                    elif event.key == pygame.K_5:
+                        return True, GameState.IA_TEST, pseudo
                     elif event.key == pygame.K_q:
                         return False, game_state, pseudo
 

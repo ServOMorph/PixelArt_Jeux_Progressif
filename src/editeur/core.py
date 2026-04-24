@@ -7,10 +7,11 @@ from src.editeur.events import handle_editor_events
 class LevelEditor:
     """Editeur de niveaux interactif et complet (Version Barre Latérale)."""
 
-    def __init__(self, screen, font_manager, data_manager):
+    def __init__(self, screen, font_manager, data_manager, ui_renderer=None):
         self.screen = screen
         self.fonts = font_manager
         self.data_manager = data_manager
+        self.ui_renderer = ui_renderer
         
         # Paramètres de la grille
         self.grid_w = 20

@@ -39,7 +39,16 @@ Ce document sert d'index technique pour une navigation rapide par l'IA.
 - **`dashboard.py`** : Interface de suivi temps réel et rapports d'analyse.
 - **`session_logger.py`** : Enregistrement et archivage des performances IA.
 
-## 📂 COMMANDS/ (Workflows)
-- **`startV2.md`** : Protocole d'initialisation de session.
-- **`closeV2.md`** : Protocole de clôture.
-- **`optimize_docs.md`** : Protocole de standardisation documentaire.
+## 📂 assets/ (Graphismes)
+- **`splash.png`** : Image de démarrage.
+- **`player.png`** : Sprite du héros.
+- **`wall.png`, `path.png`** : Tuiles du décor.
+- **`mob_h.png`, `mob_v.png`** : Sprites des ennemis.
+
+## 📂 docs/ (Documentation)
+- **`ROADMAP.md`** : Suivi de l'avancement.
+- **`MAP.md`** : Index technique (ce fichier).
+- **`GRAPHIC_CHARTER.md`** : Guide visuel Cyber-Dungeon.
+
+## 📂 src/ (Cœur de Logique)
+...

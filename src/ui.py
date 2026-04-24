@@ -29,6 +29,35 @@ class UIRenderer:
         self.screen = screen
         self.fonts = font_manager
         self.click_areas = {} # { "action_name": pygame.Rect }
+        self.splash_img = None
+        self._load_assets()
+
+    def _load_assets(self):
+        """Charge les assets graphiques (images)."""
+        import os
+        self.sprites = {}
+        assets_to_load = {
+            "splash": "splash.png",
+            "player": "player.png",
+            "wall": "wall.png",
+            "path": "path.png",
+            "mob_h": "mob_h.png",
+            "mob_v": "mob_v.png",
+            "exit": "exit.png", # Pas encore généré mais prévu
+        }
+        
+        for key, filename in assets_to_load.items():
+            path = os.path.join("assets", filename)
+            if os.path.exists(path):
+                try:
+                    img = pygame.image.load(path).convert_alpha()
+                    if key == "splash":
+                        self.splash_img = img
+                    else:
+                        # Redimensionner à la taille des tuiles
+                        self.sprites[key] = pygame.transform.smoothscale(img, (TILE_SIZE, TILE_SIZE))
+                except Exception as e:
+                    print(f"Erreur chargement asset {key}: {e}")
 
     def draw_text(self, font, text, color, center_x, y):
         """Dessine du texte centre horizontalement et retourne son Rect."""
@@ -36,6 +65,23 @@ class UIRenderer:
         rect = surface.get_rect(center=(center_x, y))
         self.screen.blit(surface, rect)
         return rect
+
+    def draw_splash(self, alpha=255):
+        """Dessine l'ecran de splash."""
+        self.screen.fill((0, 0, 0))
+        if self.splash_img:
+            if alpha < 255:
+                # Gérer la transparence si besoin pour un fade-in/out
+                self.splash_img.set_alpha(alpha)
+            
+            # Centrer l'image
+            rect = self.splash_img.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+            self.screen.blit(self.splash_img, rect)
+        else:
+            self.draw_text(self.fonts.get('large'), "PIXEL ADVENTURE", (0, 255, 255),
+                           WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
+            self.draw_text(self.fonts.get('medium'), "Chargement...", (255, 255, 255),
+                           WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 + 100)
 
     def draw_login(self, pseudo):
         """Dessine l'ecran de saisie du pseudo."""
@@ -85,11 +131,16 @@ class UIRenderer:
             ("2. Choisir un Niveau", "LEVEL_SELECT"),
             ("3. Editeur de Niveau", "EDITOR"),
             ("4. Options", "OPTIONS"),
+            ("5. Test de Niveau IA", "IA_TEST"),
             ("Q. Quitter", "QUIT")
         ]
         
         for i, (text, action) in enumerate(options):
-            rect = self.draw_text(self.fonts.get('medium'), text, COLORS["white"],
+            color = COLORS["white"]
+            if action == "PLAY": color = COLORS["player"] # Action principale en Cyan
+            elif action == "QUIT": color = COLORS["exit"]  # Quitter en Magenta
+            
+            rect = self.draw_text(self.fonts.get('medium'), text, color,
                                   WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2 - 50 + i * 80)
             self.click_areas[action] = rect
 
@@ -143,9 +194,11 @@ class UIRenderer:
 
     def draw_game_over(self, animation_frame=0):
         """Dessine l'ecran de Game Over avec animation."""
-        # Fond qui devient de plus en plus rouge
-        red_val = min(255, animation_frame * 10)
-        self.screen.fill((red_val, 0, 0))
+        # Fond qui utilise la couleur de mort de la charte
+        color = list(COLORS["death_bg"])
+        factor = min(1.0, animation_frame / 60)
+        final_color = tuple(int(c * factor) for c in color)
+        self.screen.fill(final_color)
         
         self.draw_text(self.fonts.get('title'), "MORT !", COLORS["white"],
                        WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2)
@@ -211,11 +264,12 @@ class UIRenderer:
 class GameRenderer:
     """Gere le rendu du jeu en cours."""
 
-    def __init__(self, screen, font_manager, level, render_mode="CHIADÉ"):
+    def __init__(self, screen, font_manager, level, render_mode="CHIADÉ", ui_renderer=None):
         self.screen = screen
         self.fonts = font_manager
         self.level = level
         self.render_mode = render_mode
+        self.ui_renderer = ui_renderer # Accès aux sprites chargés
         self._calculate_offsets()
 
     def _calculate_offsets(self):
@@ -264,25 +318,22 @@ class GameRenderer:
             pygame.draw.rect(self.screen, path_color, rect)
 
     def _draw_tile_chiade(self, x, y, tile, rect):
-        """Rendu Pixel Art Premium."""
-        if tile == 1: # MUR BRICK
-            pygame.draw.rect(self.screen, (60, 60, 80), rect)
-            bh, bw = 8, 16
-            for by in range(0, TILE_SIZE, bh):
-                offset = (by // bh % 2) * (bw // 2)
-                for bx in range(-bw, TILE_SIZE, bw):
-                    b_rect = pygame.Rect(rect.x + bx + offset, rect.y + by, bw-2, bh-2)
-                    if rect.contains(b_rect):
-                        pygame.draw.rect(self.screen, (80, 80, 110), b_rect)
-                        pygame.draw.rect(self.screen, (100, 100, 140), b_rect.inflate(-2, -2), 1)
+        """Rendu Pixel Art Premium avec Sprites."""
+        if tile == 1: # MUR
+            if self.ui_renderer and "wall" in self.ui_renderer.sprites:
+                self.screen.blit(self.ui_renderer.sprites["wall"], rect)
+            else:
+                pygame.draw.rect(self.screen, (60, 60, 80), rect)
+                # ... (fallback drawing)
         elif tile == 2: # ARBRE
             pygame.draw.circle(self.screen, (34, 139, 34), rect.center, 18)
             pygame.draw.circle(self.screen, (50, 160, 50), rect.center, 12)
             pygame.draw.rect(self.screen, (101, 67, 33), (rect.centerx-3, rect.centery, 6, 15))
         else: # SOL
-            pygame.draw.rect(self.screen, (25, 25, 35), rect)
-            for px, py in [(5,5), (25,10), (15,25), (32,32)]:
-                pygame.draw.rect(self.screen, (35, 35, 50), (rect.x+px, rect.y+py, 2, 2))
+            if self.ui_renderer and "path" in self.ui_renderer.sprites:
+                self.screen.blit(self.ui_renderer.sprites["path"], rect)
+            else:
+                pygame.draw.rect(self.screen, (25, 25, 35), rect)
 
     def draw_exit(self):
         """Dessine la sortie."""
@@ -305,7 +356,9 @@ class GameRenderer:
         pos_x, pos_y = player.get_pixel_position(self.offset_x, self.offset_y)
         player_rect = pygame.Rect(pos_x + 5, pos_y + 5, TILE_SIZE - 10, TILE_SIZE - 10)
         
-        if self.render_mode == "CHIADÉ":
+        if self.render_mode == "CHIADÉ" and self.ui_renderer and "player" in self.ui_renderer.sprites:
+            self.screen.blit(self.ui_renderer.sprites["player"], player_rect)
+        elif self.render_mode == "CHIADÉ":
             pygame.draw.circle(self.screen, (0, 255, 255), player_rect.center, 15, 2)
             pygame.draw.circle(self.screen, (0, 255, 255), player_rect.center, 8)
         else:
@@ -320,13 +373,18 @@ class GameRenderer:
             cx, cy = rect.center
             
             if self.render_mode == "CHIADÉ":
-                if mob.pattern == "horizontal": # SLIME
+                sprite_key = None
+                pattern = getattr(mob, 'pattern', None)
+                if pattern == "horizontal": sprite_key = "mob_h"
+                elif pattern == "vertical": sprite_key = "mob_v"
+                
+                if sprite_key and self.ui_renderer and sprite_key in self.ui_renderer.sprites:
+                    self.screen.blit(self.ui_renderer.sprites[sprite_key], rect)
+                elif pattern == "horizontal": # SLIME (fallback)
                     pygame.draw.ellipse(self.screen, (255, 140, 0), (cx-15, cy-10, 30, 25))
-                    pygame.draw.circle(self.screen, (255, 255, 255), (cx-6, cy-2), 3)
-                    pygame.draw.circle(self.screen, (255, 255, 255), (cx+6, cy-2), 3)
-                elif mob.pattern == "vertical": # SPECTRE
+                elif pattern == "vertical": # SPECTRE (fallback)
                     pygame.draw.polygon(self.screen, (150, 0, 200), [(cx, cy-18), (cx-15, cy+10), (cx+15, cy+10)])
-                elif mob.pattern == "chaser": # OEIL
+                elif pattern == "chaser": # OEIL
                     pygame.draw.circle(self.screen, (200, 200, 0), (cx, cy), 16)
                     pygame.draw.circle(self.screen, (255, 255, 255), (cx, cy), 10)
                     pygame.draw.circle(self.screen, (255, 0, 0), (cx, cy), 5)

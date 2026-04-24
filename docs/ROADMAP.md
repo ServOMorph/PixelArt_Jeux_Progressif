@@ -31,6 +31,9 @@
 - [x] Chargement dynamique (sans redǸmarrage)
 - [ ] Système de dǸverrouillage des niveaux (progression requise)
 - [x] **Nouveau** : Menu Options (Mode Graphique Défaut/Chiadé)
+- [x] **Nouveau** : IntǸgration du système de test IA dans l'interface
+- [x] **Nouveau** : Écran de démarrage & Charte Graphique Cyber-Dungeon
+- [x] **Nouveau** : Sprites Pixel Art Premium (Joueur, Murs, Sols, Mobs)
 - [ ] Musiques et effets sonores
 
 ## Phase 5 : Finition & Boss 🟡

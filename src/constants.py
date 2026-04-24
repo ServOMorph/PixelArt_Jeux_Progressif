@@ -3,6 +3,7 @@ from enum import IntEnum
 
 
 class GameState(IntEnum):
+    SPLASH = -1
     LOGIN = 0
     MENU = 1
     PLAYING = 2
@@ -12,6 +13,7 @@ class GameState(IntEnum):
     GAME_OVER = 6
     EDITOR = 7
     OPTIONS = 8
+    IA_TEST = 9
 
 
 EXIT_X, EXIT_Y = 15, 13

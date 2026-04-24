@@ -1,7 +1,7 @@
 {
     "Morpheus": {
         "levels_completed": 10,
-        "deaths": 23,
+        "deaths": 24,
         "time_played": 0,
         "best_level": 10
     },
@@ -10,5 +10,8 @@
         "deaths": 0,
         "time_played": 0,
         "best_level": 2
+    },
+    "config": {
+        "render_mode": "D\u00c9FAUT"
     }
 }

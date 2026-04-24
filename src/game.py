@@ -31,7 +31,7 @@ class Game:
         self.input_handler = InputHandler()
         self.font_manager = FontManager()
         self.ui_renderer = UIRenderer(self.screen, self.font_manager)
-        self.editor = LevelEditor(self.screen, self.font_manager, self.data_manager)
+        self.editor = LevelEditor(self.screen, self.font_manager, self.data_manager, ui_renderer=self.ui_renderer)
 
         # Config globale
         config = self.data_manager.get_config()
@@ -49,10 +49,12 @@ class Game:
         if DEV_MODE:
             self.pseudo = "Morpheus"
             self.player_stats = self.data_manager.get_player_stats(self.pseudo)
-            self.state = GameState.MENU
+            self.state = GameState.SPLASH # Toujours passer par le splash au début
         else:
-            self.state = GameState.LOGIN
+            self.state = GameState.SPLASH
             self.pseudo = ""
+
+        self.splash_counter = 0
 
     def start_level(self, level_id: int):
         """Initializes and starts a specific level with error handling."""
@@ -77,7 +79,7 @@ class Game:
                     self.mobs.append(mob)
                     
                 self.projectiles = []
-                self.game_renderer = GameRenderer(self.screen, self.font_manager, level, render_mode=self.render_mode)
+                self.game_renderer = GameRenderer(self.screen, self.font_manager, level, render_mode=self.render_mode, ui_renderer=self.ui_renderer)
                 self.state = GameState.PLAYING
             else:
                 print(f"Erreur: Niveau {level_id} non trouvé")
@@ -146,6 +148,14 @@ class Game:
             # Retour manuel depuis le mode TEST via ESC
             self.state = GameState.EDITOR
             self.is_testing = False
+        elif next_state == GameState.IA_TEST:
+            from run_ia import ControleurIA
+            ia_controller = ControleurIA()
+            ia_controller.boucle_principale()
+            # Rétablir la fenêtre du jeu
+            self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+            pygame.display.set_caption("Pixel Art Maze Game")
+            self.state = GameState.MENU
         else:
             self.state = next_state
 
@@ -153,6 +163,12 @@ class Game:
 
     def handle_game_logic(self):
         """Gere la logique du jeu (mouvements, collisions)."""
+        if self.state == GameState.SPLASH:
+            self.splash_counter += 1
+            if self.splash_counter > FPS * 3: # 3 secondes
+                self.state = GameState.LOGIN if not DEV_MODE else GameState.MENU
+            return
+
         if self.state == GameState.PLAYING and self.player:
             # Mouvement joueur
             self.input_handler.handle_continuous_input(self.player)
@@ -208,7 +224,7 @@ class Game:
             mob = create_mob(m_data, test_level)
             self.mobs.append(mob)
             
-        self.game_renderer = GameRenderer(self.screen, self.font_manager, test_level, render_mode=self.render_mode)
+        self.game_renderer = GameRenderer(self.screen, self.font_manager, test_level, render_mode=self.render_mode, ui_renderer=self.ui_renderer)
         self.state = GameState.PLAYING
         self.is_testing = True
         self.projectiles = []
@@ -227,7 +243,15 @@ class Game:
 
     def draw(self):
         """Rendu du jeu."""
-        if self.state == GameState.LOGIN:
+        if self.state == GameState.SPLASH:
+            # Effet de fondu optionnel basé sur splash_counter
+            alpha = 255
+            if self.splash_counter < 30: # Fade in
+                alpha = int((self.splash_counter / 30) * 255)
+            elif self.splash_counter > (FPS * 3 - 30): # Fade out
+                alpha = int(((FPS * 3 - self.splash_counter) / 30) * 255)
+            self.ui_renderer.draw_splash(alpha)
+        elif self.state == GameState.LOGIN:
             self.ui_renderer.draw_login(self.pseudo)
         elif self.state == GameState.MENU:
             self.ui_renderer.draw_menu(self.pseudo, self.player_stats)

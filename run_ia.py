@@ -58,6 +58,8 @@ class ControleurIA:
         self.generator = LevelGenerator()
         self.dashboard = Dashboard(self.largeur_jeu, self.largeur_dashboard, WINDOW_HEIGHT)
         self.ollama = ClientOllama()
+        from src.ui import UIRenderer
+        self.ui_renderer = UIRenderer(self.screen, self.font_manager)
 
         # État du jeu
         self.accumulateur_vitesse = 0.0
@@ -124,7 +126,7 @@ class ControleurIA:
 
         # Créer le renderer (adapté à la moitié gauche)
         self.game_renderer = GameRendererIA(
-            self.screen, self.font_manager, self.niveau, self.largeur_jeu
+            self.screen, self.font_manager, self.niveau, self.largeur_jeu, ui_renderer=self.ui_renderer
         )
 
         # Créer l'agent IA
@@ -370,8 +372,6 @@ class ControleurIA:
         self.accumulateur_vitesse += vitesse
         
         # Exécuter autant de steps de logique que nécessaire
-        # Si vitesse < 1, on ne fera pas un step à chaque frame.
-        # Si vitesse > 1, on fera plusieurs steps par frame.
         while self.accumulateur_vitesse >= 1.0:
             self._step_logique()
             self.accumulateur_vitesse -= 1.0
@@ -455,9 +455,6 @@ class ControleurIA:
             self.dessiner()
             self.clock.tick(FPS)
 
-        pygame.quit()
-        sys.exit()
-
 
 class GameRendererIA(GameRenderer):
     """Renderer adapté à la vue splittée (moitié gauche de l'écran).
@@ -465,11 +462,12 @@ class GameRendererIA(GameRenderer):
     Ajoute le rendu du chemin planifié par l'IA et une couleur spéciale pour le joueur.
     """
 
-    def __init__(self, screen, font_manager, level, largeur_max):
+    def __init__(self, screen, font_manager, level, largeur_max, ui_renderer=None):
         self.screen = screen
         self.fonts = font_manager
         self.level = level
         self.largeur_max = largeur_max
+        self.ui_renderer = ui_renderer
         self._calculate_offsets_ia()
 
     def _calculate_offsets_ia(self):
@@ -540,3 +538,5 @@ class GameRendererIA(GameRenderer):
 if __name__ == "__main__":
     controleur = ControleurIA()
     controleur.boucle_principale()
+    pygame.quit()
+    sys.exit()

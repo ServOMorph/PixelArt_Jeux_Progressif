@@ -14,7 +14,9 @@ Un jeu de labyrinthe progressif en Pixel Art développé en Python avec Pygame.
 - **Ennemis Dynamiques** : Mobs patrouilleurs, traqueurs (chaser) et tireurs de missiles (shooter).
 - **Tuiles Destructibles** : Système d'arbres pouvant être détruits par les missiles (HP).
 - **Grille de Sélection** : Naviguez parmi des dizaines de niveaux via une interface claire.
-- **Thèmes Visuels** : Basculez entre le mode **Défaut** (géométrique) et le mode **Chiadé** (Pixel Art Premium).
+- **Thèmes Visuels** : Basculez entre le mode **Défaut** (géométrique) et le mode **Chiadé** (Cyber-Dungeon Premium avec Sprites).
+- **Écran de Démarrage** : Splash screen animé avec charte graphique harmonisée.
+- **Test de Niveau IA** : Lancez le système d'évaluation IA (Ollama) directement depuis le menu principal.
 
 ## 🛠️ Installation
 

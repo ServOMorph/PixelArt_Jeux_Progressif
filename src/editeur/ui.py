@@ -135,35 +135,32 @@ def _draw_tile_defaut(editor, x, y, rect):
 
 def _draw_tile_chiade(editor, x, y, rect):
     """Rendu Pixel Art Premium avec détails."""
-    if editor.maze[y][x] == 1: # MUR BRICK STYLE
-        pygame.draw.rect(editor.screen, (60, 60, 80), rect) # Fond sombre
-        # Dessiner des briques
-        bh, bw = 8, 16
-        for by in range(0, editor.tile_size, bh):
-            offset = (by // bh % 2) * (bw // 2)
-            for bx in range(-bw, editor.tile_size, bw):
-                b_rect = pygame.Rect(rect.x + bx + offset, rect.y + by, bw-2, bh-2)
-                if rect.contains(b_rect):
-                    pygame.draw.rect(editor.screen, (80, 80, 110), b_rect)
-                    pygame.draw.rect(editor.screen, (100, 100, 140), b_rect.inflate(-2, -2), 1) # Highlight
-    elif editor.maze[y][x] == 2: # ARBRE CHIADE
-        pygame.draw.circle(editor.screen, (34, 139, 34), rect.center, 18) # Feuillage
-        pygame.draw.circle(editor.screen, (50, 160, 50), rect.center, 12) # Highlight
-        pygame.draw.rect(editor.screen, (101, 67, 33), (rect.centerx-3, rect.centery, 6, 15)) # Tronc
-    else: # SOL TEXTURE
-        pygame.draw.rect(editor.screen, (25, 25, 35), rect)
-        # Petits points de texture
-        for px, py in [(5,5), (25,10), (15,25), (32,32)]:
-            pygame.draw.rect(editor.screen, (35, 35, 50), (rect.x+px, rect.y+py, 2, 2))
+    if editor.maze[y][x] == 1: # MUR
+        if editor.ui_renderer and "wall" in editor.ui_renderer.sprites:
+            # Scale sprite to editor tile size
+            sprite = pygame.transform.smoothscale(editor.ui_renderer.sprites["wall"], (rect.width, rect.height))
+            editor.screen.blit(sprite, rect)
+        else:
+            pygame.draw.rect(editor.screen, (60, 60, 80), rect) # Fallback
+    elif editor.maze[y][x] == 2: # ARBRE
+        pygame.draw.circle(editor.screen, (34, 139, 34), rect.center, rect.width//3)
+        pygame.draw.circle(editor.screen, (50, 160, 50), rect.center, rect.width//5)
+    else: # SOL
+        if editor.ui_renderer and "path" in editor.ui_renderer.sprites:
+            sprite = pygame.transform.smoothscale(editor.ui_renderer.sprites["path"], (rect.width, rect.height))
+            editor.screen.blit(sprite, rect)
+        else:
+            pygame.draw.rect(editor.screen, (25, 25, 35), rect)
 
     # Start/Exit Premium
     if [x, y] == editor.start_pos:
-        pygame.draw.circle(editor.screen, (0, 255, 255), rect.center, 15, 2)
-        pygame.draw.circle(editor.screen, (0, 255, 255), rect.center, 8)
+        if editor.ui_renderer and "player" in editor.ui_renderer.sprites:
+            sprite = pygame.transform.smoothscale(editor.ui_renderer.sprites["player"], (rect.width, rect.height))
+            editor.screen.blit(sprite, rect)
+        else:
+            pygame.draw.circle(editor.screen, (0, 255, 255), rect.center, rect.width//2 - 5, 2)
     elif [x, y] == editor.exit_pos:
-        # Portail tourbillonnant
-        pygame.draw.circle(editor.screen, (255, 20, 147), rect.center, 15, 3)
-        pygame.draw.circle(editor.screen, (255, 255, 255), rect.center, 5)
+        pygame.draw.circle(editor.screen, (255, 20, 147), rect.center, rect.width//2 - 5, 3)
 
 def _draw_mob_defaut(editor, mob, rect):
     if mob["pattern"] == "horizontal": color = (255, 165, 0) 
@@ -175,10 +172,15 @@ def _draw_mob_defaut(editor, mob, rect):
 def _draw_mob_chiade(editor, mob, rect):
     """Rendu Mob avec détails (Pixel Art style)."""
     cx, cy = rect.center
-    if mob["pattern"] == "horizontal": # SLIME ORANGE
+    sprite_key = None
+    if mob["pattern"] == "horizontal": sprite_key = "mob_h"
+    elif mob["pattern"] == "vertical": sprite_key = "mob_v"
+    
+    if sprite_key and editor.ui_renderer and sprite_key in editor.ui_renderer.sprites:
+        sprite = pygame.transform.smoothscale(editor.ui_renderer.sprites[sprite_key], (rect.width, rect.height))
+        editor.screen.blit(sprite, rect)
+    elif mob["pattern"] == "horizontal": # SLIME ORANGE (fallback)
         pygame.draw.ellipse(editor.screen, (255, 140, 0), (cx-15, cy-10, 30, 25))
-        pygame.draw.circle(editor.screen, (255, 255, 255), (cx-6, cy-2), 3) # Oeil G
-        pygame.draw.circle(editor.screen, (255, 255, 255), (cx+6, cy-2), 3) # Oeil D
     elif mob["pattern"] == "vertical": # SPECTRE VIOLET
         pygame.draw.polygon(editor.screen, (150, 0, 200), [(cx, cy-18), (cx-15, cy+10), (cx+15, cy+10)])
         pygame.draw.circle(editor.screen, (0, 0, 0), (cx, cy), 4) # Noyau
