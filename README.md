@@ -60,12 +60,23 @@ python run.py
 
 ## 📁 Structure du Projet
 
-- `run.py` : Point d'entrée principal du jeu.
-- `run_editeur.py` : Lanceur autonome de l'éditeur.
-- `config.py` : Paramètres globaux (résolution, FPS, mode dev, couleurs).
-- `src/` : Code source logique (entités, rendu, entrées, etc.).
-- `levels/` : Données des niveaux par défaut et personnalisés.
-- `stats.json` : Fichier de sauvegarde des statistiques joueurs.
+- **`run.py`** : Point d'entrée principal du jeu.
+- **`run_editeur.py`** : Lanceur autonome de l'éditeur de niveaux.
+- **`run_ia.py`** : Interface de test et d'évaluation des niveaux par IA (Ollama).
+- **`config.py`** : Configuration globale et charte graphique (couleurs).
+- **`assets/`** : Ressources graphiques (Sprites Pixel Art, Splash Screen).
+- **`src/`** : Moteur de jeu (Rendu, Entrées, Logique, Persistance).
+- **`mobs/`** : Système d'IA modulaire pour les différents types d'ennemis.
+- **`levels/`** : Configurations des niveaux et stockage des créations utilisateurs.
+- **`docs/`** : Documentation technique, Roadmap et Charte Graphique.
+
+## 🤖 Système de Test IA
+
+Le projet inclut un outil de test avancé (`run_ia.py`) qui permet :
+- De simuler des parties via une IA (Agent A* amélioré).
+- D'obtenir une analyse critique des niveaux via **Ollama** (Llama 3 / Mistral).
+- De visualiser les zones de danger et les chemins optimaux en temps réel.
+- De générer des rapports de difficulté pour équilibrer le gameplay.
 
 ---
 Développé avec ❤️ pour ServOMorph.

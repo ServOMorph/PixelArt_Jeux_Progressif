@@ -462,12 +462,11 @@ class GameRendererIA(GameRenderer):
     Ajoute le rendu du chemin planifié par l'IA et une couleur spéciale pour le joueur.
     """
 
-    def __init__(self, screen, font_manager, level, largeur_max, ui_renderer=None):
-        self.screen = screen
-        self.fonts = font_manager
-        self.level = level
+    def __init__(self, screen, font_manager, level, largeur_max, render_mode="CHIADÉ", ui_renderer=None):
+        # Initialiser via la classe parente pour avoir render_mode et ui_renderer
+        super().__init__(screen, font_manager, level, render_mode, ui_renderer)
         self.largeur_max = largeur_max
-        self.ui_renderer = ui_renderer
+        # Recalculer les offsets spécifiques à la vue IA
         self._calculate_offsets_ia()
 
     def _calculate_offsets_ia(self):
